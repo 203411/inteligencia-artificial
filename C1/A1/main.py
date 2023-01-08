@@ -2,14 +2,16 @@ import sys
 import os
 from PyQt5 import QtWidgets, uic
 import math
+import matplotlib.pyplot as plt
 import numpy as np
 from random import uniform, randint
-
+from shutil import rmtree
+import cv2
 
 
 
 class DNA():
-    def __init__(self,poblacion_i,poblacion_m, pmi, pmg, p_cruza,presicion,x_min, x_max, generaciones, maximizar=True, verbose=True):
+    def __init__(self,poblacion_i,poblacion_m, pmi, pmg, p_cruza,presicion,x_max, x_min, generaciones, maximizar=True, verbose=True):
         self.poblacion_i = poblacion_i
         self.poblacion_m = poblacion_m
         self.pmi = pmi
@@ -153,6 +155,70 @@ class DNA():
             poblacion_final.append(individuos[i].__getitem__(0))
         
         return poblacion_final
+    
+    
+    def agregar_poblacion(self, poblacion, hijos):
+        poblacion.extend(hijos)
+        return poblacion
+
+    def limpieza(self, mutados, pob):
+        poblacion = pob.copy()
+        x = 0.0
+        a = self.x_min
+        delta = (self.x_max - self.x_min) / self.calculate_bits(self.calculate_value(self.x_min, self.x_max, self.presicion))
+        valor = 0
+        decimal = 0
+        poblacion_nueva = []
+        individuo_completo = []
+        
+        
+        for i in range(mutados.__len__()):
+            for posicion, digito_string in enumerate(mutados[i][::-1]):
+                decimal += int(digito_string) * 2 ** posicion
+                
+            x = a + decimal * delta    
+            individuo_completo = (mutados[i], x, self.fx(x), decimal)
+            poblacion_nueva.append(individuo_completo)
+            decimal = 0
+        
+        #print(poblacion) 
+        
+        poblacion_final = self.agregar_poblacion(poblacion_nueva, poblacion)
+        j=0
+        
+        for i in range(len(poblacion_final)):
+            
+            if (poblacion_final[j].__getitem__(3)*delta) >= (self.calculate_value(self.x_min,self.x_max,self.presicion)) or (poblacion_final[j].__getitem__(3)*delta) <= 0  :
+                poblacion_final.remove(poblacion_final[j])
+                j = j - 1
+            j=j+1
+        
+        
+        return poblacion_final
+    
+    def poda(self, poblacion, poblacion_maxima):
+
+        
+        if len(poblacion) > poblacion_maxima:
+            while len(poblacion) > poblacion_maxima:
+                poblacion.remove(poblacion[-1])
+            #print(poblacion)
+        
+        return poblacion
+
+    def ordenar_valores(self, valores, maximizar):
+        valores_ordenados = []
+        valores_ordenar = []
+        
+        for i in range(valores.__len__()):
+            valores_ordenar.append(valores.__getitem__(i).__getitem__(2))
+            
+        if maximizar:
+            valores_ordenados = sorted(valores_ordenar, key = lambda x:float(x), reverse=True)
+        else:
+            valores_ordenados = sorted(valores_ordenar, key = lambda x:float(x)) 
+        return valores_ordenados
+
         
         
 
@@ -160,23 +226,133 @@ def main(dna):
     poblacion = []
     generaciones = []
     individuos_before_poda = []
-    best_individuo = []
-    worst_individuo = []
+    mejor_individuo = []
+    peor_individuo = []
     promedio = []
     
-    poblacion = dna.generate_population() 
-    poblacion = dna.evaluate_poblacion(poblacion) 
+    poblacion = dna.evaluate_poblacion(dna.generate_population()) 
      
     print("Poblacion inicial: (Generacion 1)",poblacion)
     
     for generacion in range(dna.generaciones):
-        individuos_before_poda = dna.mutacion(dna.cruza(dna.selection(dna.maximizar,poblacion), dna.p_cruza ), dna.pmi, dna.pmg)
-    print("Poblacion despues de la mutacion: ",individuos_before_poda)
+        individuos_before_poda = dna.limpieza(dna.mutacion(dna.cruza(dna.selection(dna.maximizar,poblacion), dna.p_cruza ), dna.pmi, dna.pmg),poblacion)
+        
+        poblacion_ordenada = dna.ordenar_valores(individuos_before_poda, dna.maximizar)
+        
+        mejor_individuo.append(poblacion_ordenada[0])
+        promedio.append(np.mean(poblacion_ordenada))
+        peor_individuo.append(poblacion_ordenada[-1])
+        
+        print("Mejor individuo: ", mejor_individuo)
+        print("Promedio: ", promedio)
+        print("Peor individuo: ", peor_individuo)
+        
+        individuos_before_poda.sort(key=lambda x: float(x.__getitem__(2)), reverse=dna.maximizar)
+        poblacion = dna.poda(individuos_before_poda, dna.poblacion_m)
+        generaciones.append(poblacion)
+        
+    for i in range(generaciones.__len__()):
+        print("Generacion: ",i+2,"\n",generaciones[i])
+        
+    plt.plot(mejor_individuo, label="Mejor individuo", color="red", linestyle="-",)
+    plt.plot(promedio, label="Promedio", color="blue", linestyle="-",)
+    plt.plot(peor_individuo, label="Peor individuo", color="green", linestyle="-")
+    plt.legend()
+    os.makedirs("codigo_genetico\Imagenes\GraficaHistorial/", exist_ok=True)
+    plt.savefig("codigo_genetico\Imagenes\GraficaHistorial/GraficaHistorial.png")
+    plt.close()
+    
+    try:
+        rmtree("codigo_genetico\Imagenes\graficasUnitarias/")
+    except:
+        pass
+    finally:
+        os.makedirs("codigo_genetico\Imagenes\graficasUnitarias", exist_ok=True)
+    os.makedirs("codigo_genetico\Imagenes\short/", exist_ok=True)
+    for i in range(len(generaciones)):
+        listaX = []
+        listaY = []
+        for j in range(len(generaciones[i])):
+            listaX.append(generaciones[i].__getitem__(j).__getitem__(1))
+            listaY.append(generaciones[i].__getitem__(j).__getitem__(2))
+            
+            
+        plt.title("Generacion: " + str(i+1))
+        plt.scatter(listaX, listaY)
+        plt.xlim(0,dna.calculate_value(dna.x_min,dna.x_max,dna.presicion))
+        plt.ylim(-1, 10)
+        plt.savefig("codigo_genetico\Imagenes\graficasUnitarias/generacion"+str(i+1)+".png")
+        plt.savefig("codigo_genetico\Imagenes\short/generacion"+str(i+1)+".png")
+        plt.close()
+        
+    img = []   
+    for i in range(len(generaciones)):
+        img.append(cv2.imread("codigo_genetico\Imagenes\short\generacion"+str(i+1)+".png"))
 
-if __name__ == "__main__":
+    alto, ancho = img[0].shape[:2]
+
+    video = cv2.VideoWriter('codigo_genetico\Imagenes\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'), 3, (ancho, alto))
+
+    for i in range(len(img)):
+        video.write(img[i])
+    rmtree("codigo_genetico\Imagenes\short/")
+    print("OK")
+    interfaz.estado2.setText("Proceso Finalizado")
+    app.closeAllWindows()
+    
+    
+    ##dna.evaluar_poblacion(dna.generar_poblacion()) ,dna.poblacion_maxima)
+
+
+
+def send():
+    
+    run = True
+    try:
+        poblacion_inicial = int(interfaz.poblacion_i.text())
+        poblacion_final = int(interfaz.poblacion_m.text())
+        presicion = float(interfaz.presicion.text())
+        pmg = float(interfaz.pmg.text())
+        pmi = float(interfaz.pmi.text())
+        p_cruza = float(interfaz.pcruza.text())
+        x_max = int(interfaz.xmax.text())
+        x_min = int(interfaz.xmin.text())
+        maximizar = bool(interfaz.maximizar.isChecked())
+        generaciones = int(interfaz.generaciones.text())
+    
+    
+        if(poblacion_inicial < 1 or poblacion_final < 1 or presicion <= 0 or pmg <= 0 or pmi <= 0 or p_cruza <= 0 or generaciones <= 1):
+            interfaz.estado.setText("Error Debes revisar tus datos de entrada")
+            interfaz.estado.setStyleSheet("color: red")
+            run = False
+
+        if(x_min > x_max):
+            interfaz.estado.setText("Error XMin no debe ser mayor a XMax")
+            interfaz.estado.setStyleSheet("color: red")
+            run = False
+
+        if( p_cruza >= 1 or pmg >= 1 or pmi >= 1):
+            interfaz.estado.setText("Error Las probabilidades deben ser menores a 1")
+            interfaz.estado.setStyleSheet("color: red")
+            run = False
+    
+    except:
+        interfaz.estado.setText("Los datos no son validos")
+        interfaz.estado.setStyleSheet("color: red")
+        run = False
+           
+    if(run):
+        interfaz.estado.setText("")
+        main(DNA(poblacion_i = poblacion_inicial, poblacion_m = poblacion_final, presicion = presicion, pmg = pmg, pmi = pmi, p_cruza = p_cruza, x_max = x_max, x_min = x_min,  generaciones = generaciones, maximizar = maximizar))
+
+    
+    
+
+if __name__ == "__main__": 
     app = QtWidgets.QApplication(sys.argv)
     interfaz = uic.loadUi("interfaz.ui")
     interfaz.show()
-    main(DNA(poblacion_i=10,poblacion_m=10, pmi=0.1, pmg=0.1, p_cruza=0.4,presicion=0.01,x_min=5, x_max=10, generaciones=10))
-    sys.exit(app.exec_())
+    interfaz.btn_ok.clicked.connect(send)
+    
+    sys.exit(app.exec())
     

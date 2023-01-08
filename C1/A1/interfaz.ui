@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>514</width>
-    <height>351</height>
+    <width>725</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,124 +22,193 @@
      <rect>
       <x>10</x>
       <y>50</y>
-      <width>41</width>
-      <height>16</height>
+      <width>120</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
     </property>
     <property name="text">
-     <string>Po</string>
+     <string>Pob inicial</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="poblacion_inicial">
+   <widget class="QLineEdit" name="poblacion_i">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>150</x>
       <y>50</y>
-      <width>61</width>
-      <height>16</height>
+      <width>75</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
-      <width>41</width>
-      <height>16</height>
+      <y>90</y>
+      <width>120</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
     </property>
     <property name="text">
-     <string>Pmax</string>
+     <string>Pob max</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="pmax">
+   <widget class="QLineEdit" name="poblacion_m">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>80</y>
-      <width>61</width>
-      <height>16</height>
+      <x>150</x>
+      <y>90</y>
+      <width>75</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>110</y>
-      <width>41</width>
-      <height>16</height>
+      <y>130</y>
+      <width>120</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
     </property>
     <property name="text">
-     <string>PC</string>
+     <string>Prob Cruza</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="pc">
+   <widget class="QLineEdit" name="pcruza">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>110</y>
-      <width>61</width>
-      <height>16</height>
+      <x>150</x>
+      <y>130</y>
+      <width>75</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QLineEdit" name="pmi">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>390</x>
       <y>50</y>
-      <width>61</width>
-      <height>16</height>
+      <width>75</width>
+      <height>25</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>300</x>
       <y>50</y>
-      <width>41</width>
-      <height>20</height>
+      <width>70</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Pmi</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>80</y>
-      <width>41</width>
-      <height>20</height>
+      <x>300</x>
+      <y>90</y>
+      <width>70</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Pmg</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QLineEdit" name="pmg">
     <property name="geometry">
      <rect>
-      <x>250</x>
-      <y>80</y>
-      <width>61</width>
-      <height>16</height>
+      <x>390</x>
+      <y>90</y>
+      <width>75</width>
+      <height>25</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>50</y>
-      <width>41</width>
-      <height>20</height>
+      <x>540</x>
+      <y>90</y>
+      <width>50</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Xmin</string>
@@ -148,43 +217,48 @@
    <widget class="QLineEdit" name="xmin">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>50</y>
-      <width>61</width>
-      <height>16</height>
+      <x>600</x>
+      <y>90</y>
+      <width>75</width>
+      <height>25</height>
      </rect>
     </property>
    </widget>
    <widget class="QLineEdit" name="xmax">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>80</y>
-      <width>61</width>
-      <height>16</height>
+      <x>600</x>
+      <y>130</y>
+      <width>75</width>
+      <height>25</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>80</y>
-      <width>41</width>
-      <height>20</height>
+      <x>540</x>
+      <y>130</y>
+      <width>50</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Xmax</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="ax">
+   <widget class="QLineEdit" name="presicion">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>110</y>
-      <width>61</width>
-      <height>16</height>
+      <x>390</x>
+      <y>130</y>
+      <width>75</width>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
@@ -194,14 +268,22 @@
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>110</y>
-      <width>61</width>
-      <height>20</height>
+      <x>279</x>
+      <y>130</y>
+      <width>91</width>
+      <height>25</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Presicion</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="label_4">
@@ -209,7 +291,7 @@
      <rect>
       <x>30</x>
       <y>10</y>
-      <width>461</width>
+      <width>591</width>
       <height>31</height>
      </rect>
     </property>
@@ -222,24 +304,148 @@
     <property name="sizeIncrement">
      <size>
       <width>2</width>
-      <height>2</height>
+      <height>0</height>
      </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Ingrese los datos que se pide y presione el botón para continuar </string>
     </property>
    </widget>
-   <widget class="QPushButton" name="enviar">
+   <widget class="QPushButton" name="btn_ok">
     <property name="geometry">
      <rect>
-      <x>230</x>
-      <y>140</y>
-      <width>75</width>
-      <height>23</height>
+      <x>320</x>
+      <y>290</y>
+      <width>85</width>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
      <string>Continuar</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>50</y>
+      <width>125</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Intervalos</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="maximizar">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>170</y>
+      <width>111</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Maximizar</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>200</y>
+      <width>431</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>7</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Si la casilla no es marcada, el valor por defecto es minimizar</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="estado">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>230</y>
+      <width>1200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="estado2">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>340</y>
+      <width>1200</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
+      <y>190</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string># Generaciones</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="generaciones">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>190</y>
+      <width>75</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>
@@ -248,7 +454,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>514</width>
+     <width>725</width>
      <height>22</height>
     </rect>
    </property>
