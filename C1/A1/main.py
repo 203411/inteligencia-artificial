@@ -252,7 +252,7 @@ def main(dna):
         generaciones.append(poblacion)
         
     for i in range(generaciones.__len__()):
-        print("Generacion: ",i+2,"\n",generaciones[i])
+        print("Generacion: ",i+1,"\n",generaciones[i])
         
     plt.plot(mejor_individuo, label="Mejor individuo", color="red", linestyle="-",)
     plt.plot(promedio, label="Promedio", color="blue", linestyle="-",)
@@ -280,7 +280,7 @@ def main(dna):
         plt.title("Generacion: " + str(i+1))
         plt.scatter(listaX, listaY)
         plt.xlim(0,dna.calculate_value(dna.x_min,dna.x_max,dna.presicion))
-        plt.ylim(-1, 10)
+        plt.ylim(-1, 6)
         plt.savefig("codigo_genetico\Imagenes\graficasUnitarias/generacion"+str(i+1)+".png")
         plt.savefig("codigo_genetico\Imagenes\short/generacion"+str(i+1)+".png")
         plt.close()
@@ -331,7 +331,7 @@ def send():
             interfaz.estado.setStyleSheet("color: red")
             run = False
 
-        if( p_cruza >= 1 or pmg >= 1 or pmi >= 1):
+        if( p_cruza >= 1):
             interfaz.estado.setText("Error Las probabilidades deben ser menores a 1")
             interfaz.estado.setStyleSheet("color: red")
             run = False
