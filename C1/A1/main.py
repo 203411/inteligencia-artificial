@@ -41,11 +41,28 @@ class DNA():
     def generate_population(self):
         '''array de individuos'''
         poblacion = []
+        i = 0
         for i in range(self.poblacion_i):
             individuo = [np.random.randint(0, 2) for i in range(self.calculate_bits(self.calculate_value(self.x_min, self.x_max, self.presicion)))]
+            print(individuo)
             poblacion.append(individuo)
-            # print(poblacion)
+            print(poblacion)
         return poblacion
+    
+    
+    def decimal_a_binario(self,numero_decimal):
+        numero_binario = 0
+        multiplicador = 1
+        while numero_decimal != 0:
+            # se almacena el módulo en el orden correcto
+            numero_binario = numero_binario + numero_decimal % 2 * multiplicador
+            numero_decimal //= 2
+            multiplicador *= 10
+            
+        print(numero_binario)
+        numero_binario = ''+str(numero_binario)
+        return numero_binario
+    
     
     '''Función de ejemplo'''
     def fx(self,x):
@@ -61,19 +78,35 @@ class DNA():
             decimal += int(digito_string) * 2 ** posicion
         return(decimal, cadena)
     
+    def evaluar_individuo(self, individuo):
+        x = 0.0
+        a = self.x_min
+        delta = (self.x_max - self.x_min) / self.calculate_bits(self.calculate_value(self.x_min, self.x_max, self.presicion))
+        valor = 0
+        
+        i = self.binary_to_decimal(individuo)
+        print(i)
+        x = a + i[0] * self.presicion #funcion para calcular el valor de x
+        print(x)
+        if(x <= self.x_max and x >= self.x_min):
+            return True
+        return False
+    
     def evaluate_poblacion(self, poblacion):
         '''Evalua la poblacion de la generacion aleatoria'''
         x = 0.0
-        a = self.x_max
+        a = self.x_min
         delta = (self.x_max - self.x_min) / self.calculate_bits(self.calculate_value(self.x_min, self.x_max, self.presicion))
         valor = 0
         poblacion = poblacion
         fitness = []	
         for i in range(poblacion.__len__()):
             i = self.binary_to_decimal(poblacion.__getitem__(i))
-            x = a + i[0] * delta #funcion para calcular el valor de x
+            x = a + (i[0] * self.presicion) #funcion para calcular el valor de x
+            print(x)
             valor = (i.__getitem__(1),x,self.fx(x),i.__getitem__(0))
             fitness.append(valor)
+        print(fitness)
         return fitness
     
     def selection(self, maximizar, valor):
@@ -87,7 +120,8 @@ class DNA():
             padres.append(fitness[np.random.randint(0, len(fitness))])
         if padres.__len__() % 2 != 0:
             padres.pop()
-        padres.sort(key=lambda x: x[2], reverse=maximizar)       
+        padres.sort(key=lambda x: x[2], reverse=maximizar)     
+        print(padres)  
         return padres
     
     def cruza(self, padres,p_cruza):
@@ -99,8 +133,9 @@ class DNA():
         hijo1 = ""
         hijo2 = ""
         hijos = []    
+        # padre_ganador = padres.__getitem__(0).__getitem__(0)
         padre_ganador = padres.__getitem__(0).__getitem__(0)
-        for i in range(int(len(padres)/2)):
+        for i in range(int(len(padres)-2)):
             pc = np.random.rand() #probabilidad de cruza
             if pc <= p_cruza:
                 punto_cruza = np.random.randint(1,padres.__getitem__(0).__getitem__(0).__len__())
@@ -114,9 +149,9 @@ class DNA():
                 hijos.append(hijo1)
                 hijos.append(hijo2)
             else:
-                # print("\n % de reproduccion: ",pc)
+              # print("\n % de reproduccion: ",pc)
                 pass
-        # print("Hijos: ",hijos)
+    # print("Hijos: ",hijos)
         return hijos
     
     def mutacion(self, hijos, pmi, pmg):
@@ -130,21 +165,18 @@ class DNA():
             numero_aleatorio = [np.random.rand() for i in range(self.calculate_bits(self.calculate_value(self.x_min, self.x_max, self.presicion)))]
             individuo = (hijos[i], numero_aleatorio)
             individuos.append(individuo)
-
     
         for i in range(hijos.__len__()):
             for j in range(individuos[i].__getitem__(1).__len__()):
                 if individuos[i].__getitem__(1)[j] < pm:
                     individuo = list(individuos[i].__getitem__(0))
                     
-                    print("individuo: ", individuo)
+                    # print("individuo: ", individuo)
                     if individuo[j] == "0":
                         individuo[j] = "1"
                         individuoMutado = "".join(individuo)
                         individuos[i] = (individuoMutado, individuos[i].__getitem__(1))
                         
-                        
-
                     else:
                         individuo[j] = "0"
                         individuoMutado = "".join(individuo)
@@ -176,7 +208,7 @@ class DNA():
             for posicion, digito_string in enumerate(mutados[i][::-1]):
                 decimal += int(digito_string) * 2 ** posicion
                 
-            x = a + decimal * delta    
+            x = a + decimal * self.presicion    
             individuo_completo = (mutados[i], x, self.fx(x), decimal)
             poblacion_nueva.append(individuo_completo)
             decimal = 0
@@ -185,10 +217,10 @@ class DNA():
         
         poblacion_final = self.agregar_poblacion(poblacion_nueva, poblacion)
         j=0
+        k = 0
         
         for i in range(len(poblacion_final)):
-            
-            if (poblacion_final[j].__getitem__(3)*delta) >= (self.calculate_value(self.x_min,self.x_max,self.presicion)) or (poblacion_final[j].__getitem__(3)*delta) <= 0  :
+            if (poblacion_final[j].__getitem__(1) > self.x_max or poblacion_final[j].__getitem__(1) < self.x_min):
                 poblacion_final.remove(poblacion_final[j])
                 j = j - 1
             j=j+1
@@ -197,7 +229,6 @@ class DNA():
         return poblacion_final
     
     def poda(self, poblacion, poblacion_maxima):
-
         
         if len(poblacion) > poblacion_maxima:
             while len(poblacion) > poblacion_maxima:
@@ -251,6 +282,7 @@ def main(dna):
         poblacion = dna.poda(individuos_before_poda, dna.poblacion_m)
         generaciones.append(poblacion)
         
+        
     for i in range(generaciones.__len__()):
         print("Generacion: ",i+1,"\n",generaciones[i])
         
@@ -279,8 +311,8 @@ def main(dna):
             
         plt.title("Generacion: " + str(i+1))
         plt.scatter(listaX, listaY)
-        plt.xlim(0,dna.calculate_value(dna.x_min,dna.x_max,dna.presicion))
-        plt.ylim(-1, 6)
+        plt.xlim(dna.x_min,dna.x_max)
+        plt.ylim(-1, 5)
         plt.savefig("codigo_genetico\Imagenes\graficasUnitarias/generacion"+str(i+1)+".png")
         plt.savefig("codigo_genetico\Imagenes\short/generacion"+str(i+1)+".png")
         plt.close()
