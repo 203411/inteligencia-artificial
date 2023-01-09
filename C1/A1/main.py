@@ -7,9 +7,6 @@ import numpy as np
 from random import uniform, randint
 from shutil import rmtree
 import cv2
-
-
-
 class DNA():
     def __init__(self,poblacion_i,poblacion_m, pmi, pmg, p_cruza,presicion,x_max, x_min, generaciones, maximizar=True, verbose=True):
         self.poblacion_i = poblacion_i
@@ -86,7 +83,7 @@ class DNA():
         
         i = self.binary_to_decimal(individuo)
         print(i)
-        x = a + i[0] * self.presicion #funcion para calcular el valor de x
+        x = a + i[0] * delta #funcion para calcular el valor de x
         print(x)
         if(x <= self.x_max and x >= self.x_min):
             return True
@@ -102,7 +99,7 @@ class DNA():
         fitness = []	
         for i in range(poblacion.__len__()):
             i = self.binary_to_decimal(poblacion.__getitem__(i))
-            x = a + (i[0] * self.presicion) #funcion para calcular el valor de x
+            x = a + (i[0] * delta) #funcion para calcular el valor de x
             print(x)
             valor = (i.__getitem__(1),x,self.fx(x),i.__getitem__(0))
             fitness.append(valor)
@@ -208,7 +205,7 @@ class DNA():
             for posicion, digito_string in enumerate(mutados[i][::-1]):
                 decimal += int(digito_string) * 2 ** posicion
                 
-            x = a + decimal * self.presicion    
+            x = a + decimal * delta    
             individuo_completo = (mutados[i], x, self.fx(x), decimal)
             poblacion_nueva.append(individuo_completo)
             decimal = 0
@@ -253,7 +250,7 @@ class DNA():
         
         
 
-def main(dna):
+def main(dna, interfaz):
     poblacion = []
     generaciones = []
     individuos_before_poda = []
@@ -282,10 +279,10 @@ def main(dna):
         poblacion = dna.poda(individuos_before_poda, dna.poblacion_m)
         generaciones.append(poblacion)
         
-        
+    interfaz.estado2.setText("Mejor individuo: " + str(mejor_individuo[-1]))
     for i in range(generaciones.__len__()):
-        print("Generacion: ",i+1,"\n",generaciones[i])
-        
+        print("Generacion: ",i+1," ",generaciones[i])
+    
     plt.plot(mejor_individuo, label="Mejor individuo", color="red", linestyle="-",)
     plt.plot(promedio, label="Promedio", color="blue", linestyle="-",)
     plt.plot(peor_individuo, label="Peor individuo", color="green", linestyle="-")
@@ -307,11 +304,10 @@ def main(dna):
         for j in range(len(generaciones[i])):
             listaX.append(generaciones[i].__getitem__(j).__getitem__(1))
             listaY.append(generaciones[i].__getitem__(j).__getitem__(2))
-            
-            
+
         plt.title("Generacion: " + str(i+1))
         plt.scatter(listaX, listaY)
-        plt.xlim(dna.x_min,dna.x_max)
+        plt.xlim(0,dna.x_max+1)
         plt.ylim(-1, 5)
         plt.savefig("codigo_genetico\Imagenes\graficasUnitarias/generacion"+str(i+1)+".png")
         plt.savefig("codigo_genetico\Imagenes\short/generacion"+str(i+1)+".png")
@@ -329,8 +325,9 @@ def main(dna):
         video.write(img[i])
     rmtree("codigo_genetico\Imagenes\short/")
     print("OK")
-    interfaz.estado2.setText("Proceso Finalizado")
-    app.closeAllWindows()
+    
+    # interfaz.estado2.setText("Proceso Finalizado")
+    # app.closeAllWindows()
     
     
     ##dna.evaluar_poblacion(dna.generar_poblacion()) ,dna.poblacion_maxima)
@@ -375,7 +372,7 @@ def send():
            
     if(run):
         interfaz.estado.setText("")
-        main(DNA(poblacion_i = poblacion_inicial, poblacion_m = poblacion_final, presicion = presicion, pmg = pmg, pmi = pmi, p_cruza = p_cruza, x_max = x_max, x_min = x_min,  generaciones = generaciones, maximizar = maximizar))
+        main(DNA(poblacion_i = poblacion_inicial, poblacion_m = poblacion_final, presicion = presicion, pmg = pmg, pmi = pmi, p_cruza = p_cruza, x_max = x_max, x_min = x_min,  generaciones = generaciones, maximizar = maximizar),interfaz)
 
     
     
