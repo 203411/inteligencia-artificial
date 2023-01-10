@@ -41,9 +41,9 @@ class DNA():
         i = 0
         for i in range(self.poblacion_i):
             individuo = [np.random.randint(0, 2) for i in range(self.calculate_bits(self.calculate_value(self.x_min, self.x_max, self.presicion)))]
-            print(individuo)
+            # print(individuo)
             poblacion.append(individuo)
-            print(poblacion)
+            # print(poblacion)
         return poblacion
     
     
@@ -103,7 +103,7 @@ class DNA():
             print(x)
             valor = (i.__getitem__(1),x,self.fx(x),i.__getitem__(0))
             fitness.append(valor)
-        print(fitness)
+        # print(fitness)
         return fitness
     
     def selection(self, maximizar, valor):
@@ -130,8 +130,8 @@ class DNA():
         hijo1 = ""
         hijo2 = ""
         hijos = []    
-        # padre_ganador = padres.__getitem__(0).__getitem__(0)
         padre_ganador = padres.__getitem__(0).__getitem__(0)
+        # punto_cruza =int(padre_ganador.__len__()/2)
         for i in range(int(len(padres)-2)):
             pc = np.random.rand() #probabilidad de cruza
             if pc <= p_cruza:
@@ -143,6 +143,7 @@ class DNA():
                 hijo2_tail = padre_ganador[punto_cruza:]
                 hijo1 = hijo1_head +""+ hijo1_tail
                 hijo2 = hijo2_head +""+ hijo2_tail
+                print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
                 hijos.append(hijo1)
                 hijos.append(hijo2)
             else:
@@ -200,7 +201,6 @@ class DNA():
         poblacion_nueva = []
         individuo_completo = []
         
-        
         for i in range(mutados.__len__()):
             for posicion, digito_string in enumerate(mutados[i][::-1]):
                 decimal += int(digito_string) * 2 ** posicion
@@ -209,7 +209,6 @@ class DNA():
             individuo_completo = (mutados[i], x, self.fx(x), decimal)
             poblacion_nueva.append(individuo_completo)
             decimal = 0
-        
         #print(poblacion) 
         
         poblacion_final = self.agregar_poblacion(poblacion_nueva, poblacion)
@@ -271,9 +270,9 @@ def main(dna, interfaz):
         promedio.append(np.mean(poblacion_ordenada))
         peor_individuo.append(poblacion_ordenada[-1])
         
-        print("Mejor individuo: ", mejor_individuo)
-        print("Promedio: ", promedio)
-        print("Peor individuo: ", peor_individuo)
+        # print("Mejor individuo: ", mejor_individuo)
+        # print("Promedio: ", promedio)
+        # print("Peor individuo: ", peor_individuo)
         
         individuos_before_poda.sort(key=lambda x: float(x.__getitem__(2)), reverse=dna.maximizar)
         poblacion = dna.poda(individuos_before_poda, dna.poblacion_m)
@@ -307,7 +306,7 @@ def main(dna, interfaz):
 
         plt.title("Generacion: " + str(i+1))
         plt.scatter(listaX, listaY)
-        plt.xlim(0,dna.x_max+1)
+        plt.xlim(dna.x_min-1,dna.x_max+1)
         plt.ylim(-1, 5)
         plt.savefig("codigo_genetico\Imagenes\graficasUnitarias/generacion"+str(i+1)+".png")
         plt.savefig("codigo_genetico\Imagenes\short/generacion"+str(i+1)+".png")
@@ -338,8 +337,11 @@ def send():
     
     run = True
     try:
-        poblacion_inicial = int(interfaz.poblacion_i.text())
+        # poblacion_inicial = int(interfaz.poblacion_i.text())
+        
         poblacion_final = int(interfaz.poblacion_m.text())
+        poblacion_inicial = int(np.random.randint(2,poblacion_final-1))
+        print(poblacion_inicial)
         presicion = float(interfaz.presicion.text())
         pmg = float(interfaz.pmg.text())
         pmi = float(interfaz.pmi.text())
