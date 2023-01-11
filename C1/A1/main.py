@@ -63,7 +63,8 @@ class DNA():
     
     '''Función de ejemplo'''
     def fx(self,x):
-        return math.cos(math.pi*x)*math.sin(math.pi*x/2)+math.log(x)
+        # return math.cos(math.pi*x)*math.sin(math.pi*x/2)+math.log(x)
+        return (((x**3)+(x**2)-(2*x) + 1)/x**2) * math.sin(5*x)
 
     '''Convertir binario a decimal '''   
     def binary_to_decimal(self,individuo):
@@ -130,8 +131,10 @@ class DNA():
         hijo1 = ""
         hijo2 = ""
         hijos = []    
-        padre_ganador = padres.__getitem__(0).__getitem__(0)
+        
         # punto_cruza =int(padre_ganador.__len__()/2)
+        # for i in range((padres.__len__())):
+        padre_ganador = padres.__getitem__(0).__getitem__(0)
         for i in range(int(len(padres)-2)):
             pc = np.random.rand() #probabilidad de cruza
             if pc <= p_cruza:
@@ -143,12 +146,14 @@ class DNA():
                 hijo2_tail = padre_ganador[punto_cruza:]
                 hijo1 = hijo1_head +""+ hijo1_tail
                 hijo2 = hijo2_head +""+ hijo2_tail
-                print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
+                # print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
                 hijos.append(hijo1)
                 hijos.append(hijo2)
             else:
               # print("\n % de reproduccion: ",pc)
                 pass
+            
+            
     # print("Hijos: ",hijos)
         return hijos
     
@@ -230,6 +235,10 @@ class DNA():
             while len(poblacion) > poblacion_maxima:
                 poblacion.remove(poblacion[-1])
             #print(poblacion)
+        else:
+            eliminar = int(len(poblacion)/5)
+            for i in range(eliminar):
+                poblacion.pop()
         
         return poblacion
 
@@ -307,7 +316,7 @@ def main(dna, interfaz):
         plt.title("Generacion: " + str(i+1))
         plt.scatter(listaX, listaY)
         plt.xlim(dna.x_min-1,dna.x_max+1)
-        plt.ylim(-1, 5)
+        plt.ylim(listaY[-1],listaY[0])
         plt.savefig("codigo_genetico\Imagenes\graficasUnitarias/generacion"+str(i+1)+".png")
         plt.savefig("codigo_genetico\Imagenes\short/generacion"+str(i+1)+".png")
         plt.close()
@@ -337,10 +346,10 @@ def send():
     
     run = True
     try:
-        # poblacion_inicial = int(interfaz.poblacion_i.text())
+        poblacion_inicial = int(interfaz.poblacion_i.text())
         
         poblacion_final = int(interfaz.poblacion_m.text())
-        poblacion_inicial = int(np.random.randint(2,poblacion_final-1))
+        # poblacion_inicial = int(np.random.randint(2,poblacion_final-1))
         print(poblacion_inicial)
         presicion = float(interfaz.presicion.text())
         pmg = float(interfaz.pmg.text())
