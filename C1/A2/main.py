@@ -74,22 +74,22 @@ class DNA():
         for i in range(poblacion.__len__()):
             i = self.binary_to_decimal(poblacion.__getitem__(i))
             x = a + (i[0] * delta) #funcion para calcular el valor de x
-            print(x)
+            # print(x)
             valor = (i.__getitem__(1),x,self.fx(x),i.__getitem__(0))
             fitness.append(valor)
         # print(fitness)
         return fitness
-    
-    def selection(self, maximizar, valor):
-        '''Selecciona los individuos con mejor fitness'''
+
+
+    def selection(self,maximizar,valor):
         fitness = valor.copy()
         padres = []
         fitness.sort(key=lambda x: x[2], reverse=maximizar)
-        for i in range(int(len(fitness)/2)):
+        for i in range(int(len(fitness)/3)):
             fitness.pop()
         for i in range(int(len(fitness))):
-            padres.append(fitness[np.random.randint(0, len(fitness))])
-        if padres.__len__() % 2 != 0:
+            padres.append(fitness[i])
+        if padres.__len__() % 3 != 0:
             padres.pop()
         padres.sort(key=lambda x: x[2], reverse=maximizar)     
         # print(padres)  
@@ -101,33 +101,37 @@ class DNA():
         hijo1_tail = ""
         hijo2_head = ""
         hijo2_tail = ""
+        hijo1_body = ""
+        hijo2_body = ""
         hijo1 = ""
         hijo2 = ""
-        hijos = []    
+        hijos = []   
+        punto_cruza = 0
+        punto_cruza2 = 0 
         
-        punto_cruza =int(padre_ganador.__len__()/2)
-        # for i in range((padres.__len__())):
-        padre_ganador = padres.__getitem__(0).__getitem__(0)
-        for i in range(int(len(padres)-2)):
-            pc = np.random.rand() #probabilidad de cruza
-            if pc <= p_cruza:
-                # punto_cruza = np.random.randint(1,padres.__getitem__(0).__getitem__(0).__len__())
-                # print("\n % de reproduccion: ",pc,"Punto de cruza: ",punto_cruza,"Padre 1: ",padre_ganador,"Padre 2: ",padres[i+1].__getitem__(0)	,"\n")
-                hijo1_head = padre_ganador[:punto_cruza]
-                hijo1_tail = padres[i+1].__getitem__(0)[punto_cruza:]
-                hijo2_head = padres[i+1].__getitem__(0)[:punto_cruza]
-                hijo2_tail = padre_ganador[punto_cruza:]
-                hijo1 = hijo1_head +""+ hijo1_tail
-                hijo2 = hijo2_head +""+ hijo2_tail
-                # print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
-                hijos.append(hijo1)
-                hijos.append(hijo2)
-            else:
-              # print("\n % de reproduccion: ",pc)
-                pass
+        # punto_cruza =int(padre_ganador.__len__()/2)
+        
+        for i in range(int(len(padres)/2)): #la mitad superior es la que se cruzará con todos los demás, entonces limitamos a los peores individuos a no cruzarse entre ellos
+            padre_ganador = padres.__getitem__(i).__getitem__(0)
+            for j in range(len(padres)-2):
+                pc = np.random.rand() #probabilidad de cruza
+                if pc <= p_cruza:
+                    # print("\n % de reproduccion: ",pc,"Punto de cruza: ",punto_cruza,"Padre 1: ",padre_ganador,"Padre 2: ",padres[i+1].__getitem__(0)	,"\n")
+                    hijo1_head = padre_ganador[:punto_cruza]
+                    hijo1_tail = padres[i+1].__getitem__(0)[punto_cruza:]
+                    hijo2_head = padres[i+1].__getitem__(0)[:punto_cruza]
+                    hijo2_tail = padre_ganador[punto_cruza:]
+                    hijo1 = hijo1_head +hijo1_body+ hijo1_tail+""
+                    hijo2 = hijo2_head +hijo2_body+ hijo2_tail+""
+                    # print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
+                    hijos.append(hijo1)
+                    hijos.append(hijo2)
+                else:
+                  # print("\n % de reproduccion: ",pc)
+                    pass
             
             
-    # print("Hijos: ",hijos)
+        # print("Hijos: ",hijos)
         return hijos
     
     def mutacion(self, hijos, pmi, pmg):
@@ -145,18 +149,18 @@ class DNA():
         for i in range(hijos.__len__()):
             for j in range(individuos[i].__getitem__(1).__len__()):
                 if individuos[i].__getitem__(1)[j] < pm:
-                    individuo = list(individuos[i].__getitem__(0))
-                    
-                    # print("individuo: ", individuo)
-                    if individuo[j] == "0":
-                        individuo[j] = "1"
-                        individuoMutado = "".join(individuo)
-                        individuos[i] = (individuoMutado, individuos[i].__getitem__(1))
+                    while True:
+                        posicion = np.random.randint(0,individuos[i].__getitem__(0).__len__())
+                        if posicion != i:
+                            break
                         
-                    else:
-                        individuo[j] = "0"
-                        individuoMutado = "".join(individuo)
-                        individuos[i] = (individuoMutado, individuos[i].__getitem__(1))
+                    individuo = list(individuos[i].__getitem__(0))
+                    valor_actual = individuo[j]
+                    nuevo_valor = individuo[posicion]
+                    individuo[j] = nuevo_valor
+                    individuo[posicion] = valor_actual
+                    
+                   
                         
 
         for i in range(individuos.__len__()):            
@@ -203,16 +207,13 @@ class DNA():
         return poblacion_final
     
     def poda(self, poblacion, poblacion_maxima):
-        
         if len(poblacion) > poblacion_maxima:
             while len(poblacion) > poblacion_maxima:
-                poblacion.remove(poblacion[-1])
-            #print(poblacion)
-        # else:
-        #     eliminar = int(len(poblacion)/5)
-        #     for i in range(eliminar):
-        #         poblacion.pop()
-        
+                posicion = np.random.randint(0,len(poblacion)-1)
+                poblacion.pop(posicion)
+        # if len(poblacion) > poblacion_maxima:
+        #     while len(poblacion) > poblacion_maxima:
+        #         poblacion.remove(poblacion[-1])
         return poblacion
 
     def ordenar_valores(self, valores, maximizar):
@@ -323,7 +324,7 @@ def send():
         
         poblacion_final = int(interfaz.poblacion_m.text())
         # poblacion_inicial = int(np.random.randint(2,poblacion_final-1))
-        print(poblacion_inicial)
+        # print(poblacion_inicial)
         presicion = float(interfaz.presicion.text())
         pmg = float(interfaz.pmg.text())
         pmi = float(interfaz.pmi.text())
@@ -363,7 +364,7 @@ def send():
 
 if __name__ == "__main__": 
     app = QtWidgets.QApplication(sys.argv)
-    interfaz = uic.loadUi("interfaz.ui")
+    interfaz = uic.loadUi("interfaz2.ui")
     interfaz.show()
     interfaz.btn_ok.clicked.connect(send)
     
