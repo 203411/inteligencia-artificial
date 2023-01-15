@@ -101,13 +101,10 @@ class DNA():
         hijo1_tail = ""
         hijo2_head = ""
         hijo2_tail = ""
-        hijo1_body = ""
-        hijo2_body = ""
         hijo1 = ""
         hijo2 = ""
         hijos = []   
         punto_cruza = 0
-        punto_cruza2 = 0 
         
         # punto_cruza =int(padre_ganador.__len__()/2)
         
@@ -121,16 +118,14 @@ class DNA():
                     hijo1_tail = padres[i+1].__getitem__(0)[punto_cruza:]
                     hijo2_head = padres[i+1].__getitem__(0)[:punto_cruza]
                     hijo2_tail = padre_ganador[punto_cruza:]
-                    hijo1 = hijo1_head +hijo1_body+ hijo1_tail+""
-                    hijo2 = hijo2_head +hijo2_body+ hijo2_tail+""
+                    hijo1 = hijo1_head + hijo1_tail+""
+                    hijo2 = hijo2_head + hijo2_tail+""
                     # print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
                     hijos.append(hijo1)
                     hijos.append(hijo2)
                 else:
                   # print("\n % de reproduccion: ",pc)
                     pass
-            
-            
         # print("Hijos: ",hijos)
         return hijos
     
@@ -153,14 +148,14 @@ class DNA():
                         posicion = np.random.randint(0,individuos[i].__getitem__(0).__len__())
                         if posicion != i:
                             break
-                        
                     individuo = list(individuos[i].__getitem__(0))
                     valor_actual = individuo[j]
                     nuevo_valor = individuo[posicion]
                     individuo[j] = nuevo_valor
                     individuo[posicion] = valor_actual
+                    individuo = "".join(individuo)
+                individuos[i] = (individuo, individuos[i].__getitem__(1))
                     
-                   
                         
 
         for i in range(individuos.__len__()):            
