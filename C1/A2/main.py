@@ -113,13 +113,14 @@ class DNA():
             for j in range(len(padres)-2):
                 pc = np.random.rand() #probabilidad de cruza
                 if pc <= p_cruza:
+                    punto_cruza = np.random.randint(1,padres.__getitem__(0).__getitem__(0).__len__())
                     # print("\n % de reproduccion: ",pc,"Punto de cruza: ",punto_cruza,"Padre 1: ",padre_ganador,"Padre 2: ",padres[i+1].__getitem__(0)	,"\n")
                     hijo1_head = padre_ganador[:punto_cruza]
                     hijo1_tail = padres[i+1].__getitem__(0)[punto_cruza:]
                     hijo2_head = padres[i+1].__getitem__(0)[:punto_cruza]
                     hijo2_tail = padre_ganador[punto_cruza:]
-                    hijo1 = hijo1_head + hijo1_tail+""
-                    hijo2 = hijo2_head + hijo2_tail+""
+                    hijo1 = hijo1_head +hijo1_tail
+                    hijo2 = hijo2_head +hijo2_tail
                     # print("Hijo 1: ",hijo1,"Hijo 2: ",hijo2)
                     hijos.append(hijo1)
                     hijos.append(hijo2)
@@ -134,6 +135,7 @@ class DNA():
         pmg = pmg
         pm = pmi * pmg
         individuos = []
+        individuoMutado = ""
         
         poblacion_final = []
         for i in range(hijos.__len__()):
@@ -153,9 +155,9 @@ class DNA():
                     nuevo_valor = individuo[posicion]
                     individuo[j] = nuevo_valor
                     individuo[posicion] = valor_actual
-                    individuo = "".join(individuo)
-                individuos[i] = (individuo, individuos[i].__getitem__(1))
-                    
+                    # print(individuo)
+                    individuoMutado = "".join(individuo)  
+                    individuo = individuoMutado             
                         
 
         for i in range(individuos.__len__()):            

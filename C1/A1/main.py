@@ -105,9 +105,10 @@ class DNA():
         hijo2 = ""
         hijos = []    
         
-        punto_cruza =int(padre_ganador.__len__()/2)
+        
         # for i in range((padres.__len__())):
         padre_ganador = padres.__getitem__(0).__getitem__(0)
+        punto_cruza =int(padre_ganador.__len__()/2)
         for i in range(int(len(padres)-2)):
             pc = np.random.rand() #probabilidad de cruza
             if pc <= p_cruza:
@@ -208,6 +209,10 @@ class DNA():
             while len(poblacion) > poblacion_maxima:
                 poblacion.remove(poblacion[-1])
             #print(poblacion)
+        else:
+            eliminar = int(len(poblacion)/5)
+            for i in range(eliminar):
+                poblacion.pop()
         
         return poblacion
 
@@ -362,7 +367,7 @@ def send():
 
 if __name__ == "__main__": 
     app = QtWidgets.QApplication(sys.argv)
-    interfaz = uic.loadUi("interfaz.ui")
+    interfaz = uic.loadUi("interfaz2.ui")
     interfaz.show()
     interfaz.btn_ok.clicked.connect(send)
     
