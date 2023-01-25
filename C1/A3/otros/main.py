@@ -9,26 +9,32 @@ import cv2
 from random import normalvariate, uniform, sample
 
 class DNA():
-    pasajeros_id =[]
+    alumnos_id =[]
     
-    def __init__(self, poblacion_i, poblacion_f, pmi, pmg, p_cruza, generaciones, filas,ancho_pasillo, maximizar = True, verbose = True):
+    def __init__(self, poblacion_i, poblacion_f, pmi, pmg, p_cruza, generaciones, espacio_maximo, cantidad,gasolina_kilo, K, maximizar = True, verbose = True):
         self.poblacion_i = poblacion_i
         self.poblacion_f = poblacion_f
         self.pmi = pmi
         self.pmg = pmg
         self.p_cruza = p_cruza
         self.generaciones = generaciones
-        self.filas = filas
-        self.cantidad = filas*4
+        self.tarifa = []
+        self.espacio = []
+        self.espacio_maximo = espacio_maximo
+        self.cantidad = cantidad
         self.masa = []
-        self.ancho_pasillo = ancho_pasillo
+        self.identificadores = []
+        self.gasolina_kilo = gasolina_kilo
+        self.K = K
         self.maximizar = maximizar
         self.verbose = verbose
-        self.columnas = 4
     
-    def generar_pasajeros(self): #generacion de pasajeros
+    def generar_pasajeros(self):
         for i in range(self.cantidad):
+            self.espacio.append(round(normalvariate(60,5)))
             self.masa.append(round(normalvariate(75,10)))
+            self.tarifa.append(6 + 2*round(uniform(0,1)))
+        # print("Espacios: ",self.espacio,"\nMasa: ",self.masa,"\nTarifas: ",self.tarifa)
         
     def generar_poblacion(self):
         poblacion = []
@@ -37,14 +43,12 @@ class DNA():
         ids = []
         pasajeros = self.generar_pasajeros()
         
-        self.cantidad_pasajeros = individuos
+        self.cantidad_alumnos = individuos
         for i in range(self.cantidad):
             ids.append(i+1)
-        for i in range(self.cantidad_pasajeros):
-            valor.append(self.masa[i])
-        self.pasajeros_id = {i:j for i,j in zip(ids, valor)}
-        
-        orden_asientos = []
+        for i in range(len(self.espacio)):
+            valor.append(i+1)
+        self.alumnos_id = {i:j for i,j in zip(ids, valor)}
         for i in range(self.poblacion_i):
             movimientos = np.random.randint(0, int(individuos/2))
             desordenar_ids = ids.copy()
@@ -57,55 +61,54 @@ class DNA():
                 desordenar_ids[j] = nuevo_valor
                 desordenar_ids[new_posicion] = valor_actual
             poblacion.append(desordenar_ids)
-            area_pasajeros = []
-            
-            i=0
-            for fila in range(self.filas):  # acomodar en los asientos
-                area_pasajeros.append([])
-                for columna in range(self.columnas):
-                    area_pasajeros[fila].append(self.pasajeros_id[desordenar_ids[i]])
-                    i+=1
-            # print(area_pasajeros)
-            orden_asientos.append(area_pasajeros)
-        # print("Poblacion: ",poblacion)
-        # return poblacion,orden_asientos
-        return poblacion,orden_asientos
+        print("Poblacion: ",poblacion)
+        return poblacion
     
-    def evaluar_poblacion(self, poblacion, distribucion_asientos):    
-        
+    def evaluar_poblacion(self, poblacion):
         fitness = []
         flag = True
-        area_pasajeros = (self.filas * 4 * 80 * 80) + (self.filas *self.ancho_pasillo *80)
-        pasajero_x = 0
-        pasajero_y = 0
-        total_masa = 0
-        for individuo in range(len(poblacion)):
-            for i in range(self.filas):
-                for j in range(self.columnas):
-                    if(distribucion_asientos[individuo][i][j] != 0):
-                        x = (i*80) + (self.ancho_pasillo/2) + (j*80)
-                        y = (j * 80) + (j*80)
-                        
-                        total_masa += distribucion_asientos[individuo][i][j]
-                        
-                        pasajero_x += x * distribucion_asientos[individuo][i][j]
-                        pasajero_y += y * distribucion_asientos[individuo][i][j]
-            pasajero_x /= total_masa
-            pasajero_y /= total_masa
+        for i in range(poblacion.__len__()):
+            tarifa_unitaria = []
+            espacio_unitario = []
+            espacio_usado = 0
+            tarifa_usada = 0
+            valores_usados = []
+            valores_descartados = []
             
-            conjunto_datos = poblacion[individuo], pasajero_x, pasajero_y
+            for j in range(poblacion[i].__len__()):
+                if(flag):
+                    pasajero = self.alumnos_id.get(poblacion[i][j])
+                    tarifa_unitaria.append(self.tarifa[pasajero-1])
+                    espacio_unitario.append(self.espacio[pasajero-1])
+                    espacio_usado = espacio_usado + espacio_unitario[j]
+                    
+                    tarifa_usada += (self.tarifa[pasajero-1] - ((self.K + self.masa[pasajero-1])*self.gasolina_kilo))
+                    # print(tarifa_usada)
+                    valores_usados.append(pasajero)
+
+                    if(espacio_usado > self.espacio_maximo):
+                        valores_usados.pop()
+                        valores_descartados.append(pasajero)
+                        espacio_usado = espacio_usado - espacio_unitario[j]
+                        tarifa_unitaria.pop()
+                        espacio_unitario.pop()
+                        tarifa_usada -= (self.tarifa[pasajero-1]-(self.K + self.masa[pasajero-1])*self.gasolina_kilo)
+                        # print(tarifa_usada)
+                        flag = False
+                else:
+                    valores_descartados.append(self.alumnos_id.get(poblacion[i][j]))
+                    
+            conjunto_datos = poblacion[i], valores_usados, valores_descartados, espacio_usado, tarifa_usada
             fitness.append(conjunto_datos)
-            
-        # print(fitness)
-        
+            flag = True
+        # print("Población evaluada: ",fitness)
         return fitness
     
       #metodo de seleccion por tournament
     def seleccion(self, maximizar, fit):
         seleccionados = []
         fitness = fit.copy()       
-        fitness.sort(key=lambda x: x[1], reverse=maximizar)
-            
+        fitness.sort(key=lambda x: x[4], reverse=maximizar)
         for i in range(int(fitness.__len__()/2)):
             fitness.pop()
         
@@ -113,9 +116,7 @@ class DNA():
             seleccionados.append(fitness[np.random.randint(0, fitness.__len__())])
         if(len(seleccionados)%2 != 0):
             seleccionados.pop()
-        seleccionados.sort(key=lambda x: x[1], reverse=maximizar)
-        
-        # print("Seleccionados: ",seleccionados)
+        seleccionados.sort(key=lambda x: x[4], reverse=maximizar)
         return seleccionados
         
     def buscar_repetidos(self, paquete):
@@ -128,7 +129,7 @@ class DNA():
         return repetidos
     
     def hacer_paquete_valido(self, paquete):
-        faltante = self.no_encontrados(paquete)       
+        faltante = self.no_encontrados(paquete)
         repetidos = self.buscar_repetidos(paquete)
         if(len(faltante) == 0 and len(repetidos) == 0):
             return paquete
@@ -139,7 +140,7 @@ class DNA():
 
     def no_encontrados(self, paquete):    
         faltantes = [] 
-        for i in range(self.cantidad):
+        for i in range(self.cantidad_alumnos):
             bandera = False
             for j in range(len(paquete)):
                 if(paquete[j] == i+1):
@@ -159,28 +160,24 @@ class DNA():
         hijos = []
         try:
             padre_ganador = seleccionados[0][0]
-            # print("Padre ganador: ",padre_ganador)
             for i in range(int(len(seleccionados)/2)):
                 reproduccion = np.random.rand()
-                # print("Reproduccion: ",reproduccion)
                 if(reproduccion < self.p_cruza):
-                    
                     punto_cruza = np.random.randint(1, len(seleccionados[0][0])-1)
                     hijo1_head = padre_ganador[:punto_cruza]
                     hijo1_tail = seleccionados[i+1][0][punto_cruza:]
                     
                     hijo2_head = seleccionados[i+1][0][:punto_cruza]
                     hijo2_tail = padre_ganador[punto_cruza:]
-                    
+                    #print(seleccionados)
                     hijo1 = hijo1_head + hijo1_tail
                     hijo2 = hijo2_head + hijo2_tail
-                    
+
                     self.hacer_paquete_valido(hijo1)
                     self.hacer_paquete_valido(hijo2)
+                
                     hijos.append(hijo1)
-                    # hijos.append(hijo2)
-                    # print("Hijo 1: ",hijo1)
-                    # print("Hijo 2: ",hijo2)
+                    hijos.append(hijo2)
         except:
             print("Error en cruzamiento, no hay suficientes padres")
         return hijos
@@ -193,14 +190,14 @@ class DNA():
         individuos = []
         poblacion_final = []
         for i in range(hijos.__len__()):
-            numero_aleatorio = [np.random.rand() for i in range(self.cantidad)]
+            numero_aleatorio = [np.random.rand() for i in range(self.cantidad_alumnos)]
             individuo = (hijos[i], numero_aleatorio)
             individuos.append(individuo)
         for i in range(hijos.__len__()):
             for j in range(individuos[i][1].__len__()):
                 if individuos[i][1][j] < pm:
                     while True:
-                        posicion = np.random.randint(0, self.cantidad)
+                        posicion = np.random.randint(0, self.cantidad_alumnos)
                         if numero_aleatorio != i:
                             break
                     individuo = list(individuos[i][0]) 
@@ -215,23 +212,10 @@ class DNA():
     def agregar_poblacion(self, pob, hijos):
         poblacion = pob.copy()
         poblacion.extend(hijos)
-        orden_asientos = []
-        for individuo in range(poblacion.__len__()):
-            area_pasajeros = []
-            columnas = 4
-            i=0
-            for fila in range(self.filas):  # acomodar en los asientos
-                area_pasajeros.append([])
-                for columna in range(columnas):
-                    pasajero_masa = poblacion[individuo][0][i]
-                    area_pasajeros[fila].append(self.pasajeros_id[pasajero_masa])
-                    i+=1
-            # print(area_pasajeros)
-            orden_asientos.append(area_pasajeros)
-        return poblacion,orden_asientos        
+        return poblacion        
 
     def poda(self, poblacion, poblacion_maxima):
-        poblacion.sort(key=lambda x: x[1], reverse=True)
+        poblacion.sort(key=lambda x: x[4], reverse=True)
         if poblacion.__len__() > poblacion_maxima:
             while poblacion.__len__() > poblacion_maxima:
                 poblacion.remove(poblacion[-1])        
@@ -241,7 +225,7 @@ class DNA():
         valores_ordenados = []
         valores_ordenar = []
         for i in range(valores.__len__()):
-            valores_ordenar.append(valores[i][1])
+            valores_ordenar.append(valores[i][4])
         if maximizar:
             valores_ordenados = sorted(valores_ordenar, key = lambda x:[x], reverse=True)
         else:
@@ -256,15 +240,13 @@ def main(genetico):
     promedio = []
     peor_individuo = []  
     dna = genetico
-    asientos = []
-    poblacion, asientos = dna.generar_poblacion()
-    poblacion = dna.evaluar_poblacion(poblacion,asientos)
-    # print("Poblacion inicial: ", len(poblacion))
+    poblacion = dna.evaluar_poblacion(dna.generar_poblacion())
+    print("Poblacion inicial: ", len(poblacion))
     for g in range(dna.generaciones):
 
         valores_antes_poda = dna.mutacion(dna.cruzar(dna.seleccion(True,poblacion)), dna.pmi, dna.pmg)
-        valores_antes_poda = dna.evaluar_poblacion(valores_antes_poda, asientos)
-        valores_antes_poda, asientos = dna.agregar_poblacion(poblacion, valores_antes_poda)
+        valores_antes_poda = dna.evaluar_poblacion(valores_antes_poda)
+        valores_antes_poda = dna.agregar_poblacion(poblacion, valores_antes_poda)
         poblacion_ordenada = dna.ordenar_valores(valores_antes_poda, True)
         mejor_individuo.append(poblacion_ordenada[0])
         promedio.append(np.mean(poblacion_ordenada))
@@ -289,42 +271,52 @@ def main(genetico):
     plt.close()
 
     individuos_mostrar = []
-    centro_masa_x = []
-    centro_masa_y = []
+    costo_mostrar = []
+    espacio_mostrar = []
+    usados_mostrar = []
+    nousados_mostrar = []
     tamanio = (len(generaciones[0]))
-    
     for i in range(len(generaciones)):
         individuos = []
+        costo = []
+        espacio = []
+        usados = []
+        nousados = []
         individuos_peores = []
-        masa_x = []
-        masa_y = []
-        masa_x_peores = []
-        masa_y_peores = []
+        costo_peores = []
+        espacio_peores = []
+        usados_peores = []
+        nousados_peores = []
         
         for j in range(5):
             individuos.append(generaciones[i][j][0]) # individuos
-            masa_x.append(generaciones[i][j][1]) # masa x
-            masa_y.append(generaciones[i][j][2]) # masa y
+            costo.append(generaciones[i][j][4]) # tarifas
+            espacio.append(generaciones[i][j][3]) # espacios
+            usados.append(generaciones[i][j][1]) # individuos ocupados
+            nousados.append(generaciones[i][j][2]) #individuos no usados
             individuos_peores.append(generaciones[i][(tamanio-5)+j][0]) 
-            masa_x_peores.append(generaciones[i][(tamanio-5)+j][1])
-            masa_y_peores.append(generaciones[i][(tamanio-5)+j][2])
-            
+            costo_peores.append(generaciones[i][(tamanio-5)+j][4])
+            espacio_peores.append(generaciones[i][(tamanio-5)+j][3])
+            usados_peores.append(generaciones[i][(tamanio-5)+j][1])
+            nousados_peores.append(generaciones[i][(tamanio-5)+j][2])
             
         set_individuo = (individuos +  individuos_peores)
-        set_masa_x = (masa_x + masa_x_peores)
-        set_masa_y = (masa_y + masa_y_peores)
-        
+        set_costo = (costo + costo_peores)
+        set_espacio = (espacio + espacio_peores)
+        set_usados = (usados + usados_peores)
+        set_nousados = (nousados + nousados_peores)
         individuos_mostrar.append(set_individuo)
-        centro_masa_x.append(set_masa_x)
-        centro_masa_y.append(set_masa_y)
+        costo_mostrar.append(set_costo)
+        espacio_mostrar.append(set_espacio)
+        usados_mostrar.append(set_usados)
+        nousados_mostrar.append(set_nousados)
 
     for i in range(len(generaciones)):
         fig = go.Figure(data=[go.Table(
-            columnwidth = [400,70,70],
-            header=dict(values=['Individuo',  'Centro de Masa X', 'Centro de Masa Y']),
-            cells=dict(values=[individuos_mostrar[i],centro_masa_x[i],centro_masa_y[i]]))
+            columnwidth = [100,75,50,12,12],
+            header=dict(values=['Individuo', 'Usado', 'No Usado', 'Espacio', 'Ganancia']),
+            cells=dict(values=[individuos_mostrar[i],usados_mostrar[i],nousados_mostrar[i],espacio_mostrar[i], costo_mostrar[i]]))
         ])
-        
         #fig.show() #usar para ver las tablas, no recomendado en muchas generaciones
         fig.write_image("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=650)
         fig.layout.update(title="Tabla"+str(i))
@@ -349,11 +341,11 @@ def send():
         cruzamiento = float(interfaz.pcruza.text())
         maximizar = True
         generaciones = int(interfaz.generaciones.text())
-        filas = int(interfaz.filas.text())
-        # cantidad = int(interfaz.cantidad.text())
-        pasillo = int(interfaz.pasillo.text())
+        espacio_moto = int(interfaz.espacio_maximo.text())
+        cantidad = int(interfaz.cantidad.text())
+        precio_gasolina = float(interfaz.gasolina.text())
        
-        if(filas <=0 or poblacion_inicial < 2 or poblacion_final < 2 or pmg <= 0 or pmi <= 0 or cruzamiento <= 0 or generaciones <= 1):
+        if(espacio_moto <=0 or poblacion_inicial < 2 or poblacion_final < 2 or pmg <= 0 or pmi <= 0 or cruzamiento <= 0 or generaciones <= 1):
             interfaz.estado.setText("Error Debes revisar tus datos de entrada")
             interfaz.estado.setStyleSheet("color: red")
             run = False
@@ -362,9 +354,9 @@ def send():
             interfaz.estado.setText("la probabilidad de cruza debe ser menor a 1")
             interfaz.estado.setStyleSheet("color: red")
             run = False
-        # if(cantidad<1):
-        #     interfaz.estado.setText("No puedes tener 0 pasajeros")
-        #     interfaz.setStyleSheet("red");
+        if(cantidad<1):
+            interfaz.estado.setText("No puedes tener 0 pasajeros")
+            interfaz.setStyleSheet("red");
     
     except:
         interfaz.estado.setText("Los datos no son validos")
@@ -373,18 +365,16 @@ def send():
            
     if(run):
         interfaz.estado.setText("")
-        main( DNA( poblacion_i = poblacion_inicial, poblacion_f = poblacion_final, pmi = pmi, pmg = pmg, p_cruza = cruzamiento, generaciones = generaciones,  filas = filas, ancho_pasillo = pasillo, maximizar = True, verbose = True))
-  
+        main( DNA( poblacion_i = poblacion_inicial, poblacion_f = poblacion_final, pmi = pmi, pmg = pmg, p_cruza = cruzamiento, generaciones = generaciones,  espacio_maximo = espacio_moto, cantidad = cantidad, gasolina_kilo = precio_gasolina, K = 400, maximizar = True, verbose = True))
+    
+# precio gasolina= 0.01
     
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    interfaz = uic.loadUi("interfaz-problema.ui")
+    interfaz = uic.loadUi("interfaz-automatica.ui")
     interfaz.show()
     interfaz.btn_ok.clicked.connect(send)
     sys.exit(app.exec())
-    # dna = DNA( poblacion_i = 20, poblacion_f = 50, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 5, filas = 2,ancho_pasillo = 50,  maximizar = True, verbose = True)
-    # poblacion,asientos = dna.generar_poblacion()
-    # print(poblacion)
-    # print("Asientos: ",asientos)
-    # print("Poblacion evaluada: ",dna.evaluar_poblacion(poblacion,asientos))
+    # dna = DNA( poblacion_i = 5, poblacion_f = 10, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 5, espacio_maximo = 150, cantidad = 5,gasolina_kilo = 0.01, K = 400, maximizar = True, verbose = True)
+    # dna.evaluar_poblacion(dna.generar_poblacion())
     # main(dna)
