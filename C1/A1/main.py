@@ -209,10 +209,10 @@ class DNA():
             while len(poblacion) > poblacion_maxima:
                 poblacion.remove(poblacion[-1])
             #print(poblacion)
-        else:
-            eliminar = int(len(poblacion)/5)
-            for i in range(eliminar):
-                poblacion.pop()
+        # else:
+        #     eliminar = int(len(poblacion)/5)
+        #     for i in range(eliminar):
+        #         poblacion.pop()
         
         return poblacion
 

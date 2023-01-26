@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 from PyQt5 import QtWidgets, uic
 from shutil import rmtree
 import plotly.graph_objects as go
@@ -25,6 +26,8 @@ class DNA():
         self.maximizar = maximizar
         self.verbose = verbose
         self.columnas = 4
+        self.x_centro = ((80*4)+self.ancho_pasillo)/2
+        self.y_centro = (self.filas*80)/2
     
     def generar_pasajeros(self): #generacion de pasajeros
         for i in range(self.cantidad):
@@ -57,8 +60,8 @@ class DNA():
                 desordenar_ids[j] = nuevo_valor
                 desordenar_ids[new_posicion] = valor_actual
             poblacion.append(desordenar_ids)
-            area_pasajeros = []
             
+            area_pasajeros = []
             i=0
             for fila in range(self.filas):  # acomodar en los asientos
                 area_pasajeros.append([])
@@ -67,9 +70,13 @@ class DNA():
                     i+=1
             # print(area_pasajeros)
             orden_asientos.append(area_pasajeros)
-        # print("Poblacion: ",poblacion)
-        # return poblacion,orden_asientos
+            
         return poblacion,orden_asientos
+    
+    def calcular_aptitud(self, pasajero_x, pasajero_y):
+        aptitud = math.sqrt((pasajero_x - self.x_centro)**2 + (pasajero_y - self.y_centro)**2)
+        
+        return round(aptitud,5)
     
     def evaluar_poblacion(self, poblacion, distribucion_asientos):    
         
@@ -83,8 +90,8 @@ class DNA():
             for i in range(self.filas):
                 for j in range(self.columnas):
                     if(distribucion_asientos[individuo][i][j] != 0):
-                        x = (i*80) + (self.ancho_pasillo/2) + (j*80)
-                        y = (j * 80) + (j*80)
+                        x = (i*80) + (self.ancho_pasillo/2)
+                        y = (j * 80) 
                         
                         total_masa += distribucion_asientos[individuo][i][j]
                         
@@ -93,7 +100,9 @@ class DNA():
             pasajero_x /= total_masa
             pasajero_y /= total_masa
             
-            conjunto_datos = poblacion[individuo], pasajero_x, pasajero_y
+            aptitud = self.calcular_aptitud(pasajero_x, pasajero_y)
+            
+            conjunto_datos = poblacion[individuo], pasajero_x, pasajero_y,aptitud
             fitness.append(conjunto_datos)
             
         # print(fitness)
@@ -104,7 +113,7 @@ class DNA():
     def seleccion(self, maximizar, fit):
         seleccionados = []
         fitness = fit.copy()       
-        fitness.sort(key=lambda x: x[1], reverse=maximizar)
+        fitness.sort(key=lambda x: x[3], reverse=maximizar)
             
         for i in range(int(fitness.__len__()/2)):
             fitness.pop()
@@ -113,9 +122,8 @@ class DNA():
             seleccionados.append(fitness[np.random.randint(0, fitness.__len__())])
         if(len(seleccionados)%2 != 0):
             seleccionados.pop()
-        seleccionados.sort(key=lambda x: x[1], reverse=maximizar)
+        seleccionados.sort(key=lambda x: x[3], reverse=maximizar)
         
-        # print("Seleccionados: ",seleccionados)
         return seleccionados
         
     def buscar_repetidos(self, paquete):
@@ -159,10 +167,8 @@ class DNA():
         hijos = []
         try:
             padre_ganador = seleccionados[0][0]
-            # print("Padre ganador: ",padre_ganador)
             for i in range(int(len(seleccionados)/2)):
                 reproduccion = np.random.rand()
-                # print("Reproduccion: ",reproduccion)
                 if(reproduccion < self.p_cruza):
                     
                     punto_cruza = np.random.randint(1, len(seleccionados[0][0])-1)
@@ -178,9 +184,7 @@ class DNA():
                     self.hacer_paquete_valido(hijo1)
                     self.hacer_paquete_valido(hijo2)
                     hijos.append(hijo1)
-                    # hijos.append(hijo2)
-                    # print("Hijo 1: ",hijo1)
-                    # print("Hijo 2: ",hijo2)
+                    hijos.append(hijo2)
         except:
             print("Error en cruzamiento, no hay suficientes padres")
         return hijos
@@ -231,7 +235,7 @@ class DNA():
         return poblacion,orden_asientos        
 
     def poda(self, poblacion, poblacion_maxima):
-        poblacion.sort(key=lambda x: x[1], reverse=True)
+        poblacion.sort(key=lambda x: x[3])
         if poblacion.__len__() > poblacion_maxima:
             while poblacion.__len__() > poblacion_maxima:
                 poblacion.remove(poblacion[-1])        
@@ -241,7 +245,7 @@ class DNA():
         valores_ordenados = []
         valores_ordenar = []
         for i in range(valores.__len__()):
-            valores_ordenar.append(valores[i][1])
+            valores_ordenar.append((valores[i][3]))
         if maximizar:
             valores_ordenados = sorted(valores_ordenar, key = lambda x:[x], reverse=True)
         else:
@@ -257,6 +261,7 @@ def main(genetico):
     peor_individuo = []  
     dna = genetico
     asientos = []
+
     poblacion, asientos = dna.generar_poblacion()
     poblacion = dna.evaluar_poblacion(poblacion,asientos)
     # print("Poblacion inicial: ", len(poblacion))
@@ -265,14 +270,19 @@ def main(genetico):
         valores_antes_poda = dna.mutacion(dna.cruzar(dna.seleccion(True,poblacion)), dna.pmi, dna.pmg)
         valores_antes_poda = dna.evaluar_poblacion(valores_antes_poda, asientos)
         valores_antes_poda, asientos = dna.agregar_poblacion(poblacion, valores_antes_poda)
-        poblacion_ordenada = dna.ordenar_valores(valores_antes_poda, True)
+        poblacion_ordenada = dna.ordenar_valores(valores_antes_poda, dna.maximizar)
         mejor_individuo.append(poblacion_ordenada[0])
         promedio.append(np.mean(poblacion_ordenada))
         peor_individuo.append(poblacion_ordenada[-1])
         poblacion = dna.poda(valores_antes_poda, dna.poblacion_f)
         generaciones.append(poblacion)
         print("Generacion: ", g+1, " de ", dna.generaciones)
+        print(poblacion)
 
+    # print("Mejores Individuos: ",mejor_individuo)
+    # print("Promedio: ",promedio)
+    # print("Peores Individuos: ",peor_individuo)
+    
     try:
         rmtree("codigo_genetico\Imagenes")
     except:
@@ -292,6 +302,7 @@ def main(genetico):
     centro_masa_x = []
     centro_masa_y = []
     tamanio = (len(generaciones[0]))
+    aptitudes = []
     
     for i in range(len(generaciones)):
         individuos = []
@@ -300,29 +311,35 @@ def main(genetico):
         masa_y = []
         masa_x_peores = []
         masa_y_peores = []
+        mejores_aptitudes = []
+        peores_aptitudes = []
         
         for j in range(5):
             individuos.append(generaciones[i][j][0]) # individuos
             masa_x.append(generaciones[i][j][1]) # masa x
             masa_y.append(generaciones[i][j][2]) # masa y
+            mejores_aptitudes.append(generaciones[i][j][3])
             individuos_peores.append(generaciones[i][(tamanio-5)+j][0]) 
             masa_x_peores.append(generaciones[i][(tamanio-5)+j][1])
             masa_y_peores.append(generaciones[i][(tamanio-5)+j][2])
+            peores_aptitudes.append(generaciones[i][(tamanio-5)+j][3])
             
-            
+                        
         set_individuo = (individuos +  individuos_peores)
         set_masa_x = (masa_x + masa_x_peores)
         set_masa_y = (masa_y + masa_y_peores)
+        set_aptitud = (mejores_aptitudes + peores_aptitudes)
         
         individuos_mostrar.append(set_individuo)
         centro_masa_x.append(set_masa_x)
         centro_masa_y.append(set_masa_y)
+        aptitudes.append(set_aptitud)
 
     for i in range(len(generaciones)):
         fig = go.Figure(data=[go.Table(
-            columnwidth = [400,70,70],
-            header=dict(values=['Individuo',  'Centro de Masa X', 'Centro de Masa Y']),
-            cells=dict(values=[individuos_mostrar[i],centro_masa_x[i],centro_masa_y[i]]))
+            columnwidth = [400,70,70,70],
+            header=dict(values=['Individuo',  'Centro de Masa X', 'Centro de Masa Y',"Aptitud"]),
+            cells=dict(values=[individuos_mostrar[i],centro_masa_x[i],centro_masa_y[i],aptitudes[i]]))
         ])
         
         #fig.show() #usar para ver las tablas, no recomendado en muchas generaciones
@@ -336,6 +353,9 @@ def main(genetico):
     for i in range(len(img)):
         video.write(img[i]) 
     print("OK")
+    interfaz.centro_x.setText("X = "+str(dna.x_centro))
+    interfaz.centro_y.setText("Y = "+str(dna.y_centro))
+    interfaz.estado.setText("Mejor individuo: " + str(mejor_individuo[-1]))
     interfaz.estado2.setText("Proceso Finalizado")
     # app.closeAllWindows()
   
@@ -373,8 +393,9 @@ def send():
            
     if(run):
         interfaz.estado.setText("")
-        main( DNA( poblacion_i = poblacion_inicial, poblacion_f = poblacion_final, pmi = pmi, pmg = pmg, p_cruza = cruzamiento, generaciones = generaciones,  filas = filas, ancho_pasillo = pasillo, maximizar = True, verbose = True))
-  
+        dna = DNA( poblacion_i = poblacion_inicial, poblacion_f = poblacion_final, pmi = pmi, pmg = pmg, p_cruza = cruzamiento, generaciones = generaciones,  filas = filas, ancho_pasillo = pasillo, maximizar = False, verbose = True)
+        main(dna)
+        
     
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
@@ -382,9 +403,5 @@ if __name__ == "__main__":
     interfaz.show()
     interfaz.btn_ok.clicked.connect(send)
     sys.exit(app.exec())
-    # dna = DNA( poblacion_i = 20, poblacion_f = 50, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 5, filas = 2,ancho_pasillo = 50,  maximizar = True, verbose = True)
-    # poblacion,asientos = dna.generar_poblacion()
-    # print(poblacion)
-    # print("Asientos: ",asientos)
-    # print("Poblacion evaluada: ",dna.evaluar_poblacion(poblacion,asientos))
+    # dna = DNA( poblacion_i = 5, poblacion_f = 10, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 5, filas = 5,ancho_pasillo = 50,  maximizar = False, verbose = True)
     # main(dna)

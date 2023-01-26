@@ -254,11 +254,12 @@ def main(dna, interfaz):
         # print("Promedio: ", promedio)
         # print("Peor individuo: ", peor_individuo)
         
-        individuos_before_poda.sort(key=lambda x: float(x.__getitem__(2)), reverse=dna.maximizar)
+        individuos_before_poda.sort(key=lambda x: float(x.__getitem__(3)), reverse=dna.maximizar)
         poblacion = dna.poda(individuos_before_poda, dna.poblacion_m)
         generaciones.append(poblacion)
+    mejor_individuo_imprimir = mejor_individuo.sort(key=lambda x: float(x.__getitem__(3)), reverse=dna.maximizar)
         
-    interfaz.estado2.setText("Mejor individuo: " + str(mejor_individuo[-1]))
+    interfaz.estado2.setText("Mejor individuo: " + str(mejor_individuo[0]))
     for i in range(generaciones.__len__()):
         print("Generacion: ",i+1," ",generaciones[i])
     
