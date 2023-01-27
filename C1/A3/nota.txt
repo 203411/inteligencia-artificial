@@ -1,38 +1,56 @@
-def center_of_mass(n_rows, aisle_length, n_passengers, passenger_mass, seat_distribution):
-    # Area de la sección de pasajeros
-    passenger_area = (n_rows * 4 * 80 * 80) + (n_rows * aisle_length * 80)
+
+    # Graficas de posicion
     
-    # Calcular el centro de masa de la sección de pasajeros
-    passenger_x = 0
-    passenger_y = 0
-    total_mass = 0
-    for i in range(n_rows):
-        for j in range(4):
-            if seat_distribution[i][j] != 0:
-                # Coordenadas del asiento
-                x = (i * 80) + (aisle_length / 2) + (j * 80)
-                y = (j * 80) + (i * 80)
-                # Añadir la masa del pasajero al total
-                total_mass += passenger_mass[i][j]
-                # Añadir la masa del pasajero al centro de masa
-                passenger_x += x * passenger_mass[i][j]
-                passenger_y += y * passenger_mass[i][j]
-    # Calcular el centro de masa de la sección de pasajeros
-    passenger_x /= total_mass
-    passenger_y /= total_mass
-    # Asumimos que el resto del avión tiene la misma masa y está equidistante
-    # al centro de masa de la sección de pasajeros
-    total_mass += (aisle_length * 80 * 80)
-    x = (passenger_mass * passenger_x + total_mass * passenger_x) / total_mass
-    y = (passenger_mass * passenger_y + total_mass * passenger_y) / total_mass
+    for i in range(len(generaciones)):
+        centro_x=[]
+        centro_y=[]
+        for j in range(generaciones[i].__len__()):
+            centro_x.append(generaciones[i][j][3])
+            centro_y.append(generaciones[i][j][4])
+        
+        fig,aux=plt.subplots()
+        x=np.array(centro_x)
+        y=np.array(centro_y)
+        plt.scatter(x,y,label='Individuos')
+        x_centro=np.array([dna.x_centro])
+        y_centro=np.array([dna.y_centro])
+        plt.scatter(x_centro,y_centro,label='Centro de masa')
+        aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
+        aux.set_xlabel('X',fontdict={'fontsize':15})
+        aux.set_ylabel('Y',fontdict={'fontsize':1})
+        aux.legend(loc='upper right')
+        os.makedirs("codigo_genetico/Imagenes/Ubicacion", exist_ok=True)
+        plt.savefig(f'codigo_genetico/Imagenes/Ubicacion/Generacion{i+1}')
+        plt.close()
+
+    # img = []   
+    # for i in range(len(generaciones)):
+    #     img.append(cv2.imread("codigo_genetico/Imagenes/Ubicacion\Generacion"+str(i)+".png"))
+    # alto, ancho = img[0].shape[:2]
+    # video = cv2.VideoWriter('codigo_genetico/Imagenes/Video/ubicacion.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
+    # for i in range(len(img)):
+    #     video.write(img[i]) 
     
-    return x, y
-
-
-    La función "center_of_mass" toma como argumentos el número de filas, la longitud del pasillo central, la cantidad de pasajeros, la masa de los pasajeros y la distribución de los pasajeros en los asientos. Primero se calcula el área de la sección de pasajeros, luego se calcula el centro de masa de la sección de pasajeros en función de la masa de los pasajeros, la distribución de los pasajeros en los asientos y el área de la sección de pasajeros.
-Asumimos que el resto del avión tiene la misma masa y está equidistante al centro de masa de la sección de pasajeros, por lo que se calcula el centro de masa total del avión dividiendo la masa total entre el área total del avión.
-Es importante mencionar que esta función es un ejemplo básico y puede ser modificada dependiendo de las necesidades específicas del problema.
-
-
+    # for i in range(len(generaciones)):
+    #     centro_x=[]
+    #     centro_y=[]
+    #     for j in range(centro_masa_x[i].__len__()):
+    #         centro_x.append(centro_masa_x[i][j])
+    #         centro_y.append(centro_masa_y[i][j])
+        
+    #     fig,aux=plt.subplots()
+    #     x=np.array(centro_x)
+    #     y=np.array(centro_y)
+    #     plt.scatter(x,y,label='Individuos')
+    #     x_centro=np.array([dna.x_centro])
+    #     y_centro=np.array([dna.y_centro])
+    #     plt.scatter(x_centro,y_centro,label='Centro de masa')
+    #     aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
+    #     aux.set_xlabel('X',fontdict={'fontsize':15})
+    #     aux.set_ylabel('Y',fontdict={'fontsize':1})
+    #     aux.legend(loc='upper right')
+    #     os.makedirs("codigo_genetico/Imagenes/Ubicacion", exist_ok=True)
+    #     plt.savefig(f'codigo_genetico/Imagenes/Ubicacion/Generacion{i+1}')
+    #     plt.close()
 
 
