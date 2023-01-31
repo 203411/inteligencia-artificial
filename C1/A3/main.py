@@ -48,7 +48,6 @@ class DNA():
             valor.append(self.masa[i])
         self.pasajeros_id = {i:j for i,j in zip(ids, valor)}
         
-        orden_asientos = []
         for i in range(self.poblacion_i):
             movimientos = np.random.randint(0, int(individuos/2))
             desordenar_ids = ids.copy()
@@ -132,7 +131,7 @@ class DNA():
         fitness.sort(key=lambda x: x[5])
             
         for i in range(int(fitness.__len__()/2)):
-            fitness.pop()
+            fitness.pop() # Se elimina a la mitad de la población con peor fitness y que no son utilizados
         
         for i in range(len(fitness)):
             seleccionados.append(fitness[np.random.randint(0, fitness.__len__())])
@@ -391,6 +390,38 @@ def main(genetico):
 
     crear_excel(individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_masa_x, centro_masa_y, aptitudes)
     
+    for i in range(len(generaciones)):
+        centro_x=[]
+        centro_y=[]
+        for j in range(generaciones[i].__len__()):
+            centro_x.append(generaciones[i][j][3])
+            centro_y.append(generaciones[i][j][4])
+        
+        fig,aux=plt.subplots()
+        x=np.array(centro_x)
+        y=np.array(centro_y)
+        # plt.xlim(0,280+dna.ancho_pasillo)
+        # plt.ylim(0,(80*dna.filas))
+        plt.grid()
+        plt.scatter(x,y,label='Individuos')
+        x_centro=np.array([dna.x_centro])
+        y_centro=np.array([dna.y_centro])
+        plt.scatter(x_centro,y_centro,label='Centro de masa')
+        aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
+        aux.set_xlabel('X',fontdict={'fontsize':15})
+        aux.set_ylabel('Y',fontdict={'fontsize':1})
+        aux.legend(loc='upper right')
+        os.makedirs("codigo_genetico/Imagenes/Ubicacion", exist_ok=True)
+        plt.savefig(f'codigo_genetico/Imagenes/Ubicacion/Generacion{i+1}')
+        plt.close()
+    
+    img = []
+    for i in range(len(generaciones)):
+        img.append(cv2.imread("codigo_genetico/Imagenes/Ubicacion/Generacion"+str(i+1)+".png"))
+    alto, ancho, canales = img[0].shape[:3]
+    video = cv2.VideoWriter('codigo_genetico/Imagenes/Video/Ubicacion.avi', cv2.VideoWriter_fourcc(*'DIVX'), 3, (ancho, alto))
+    for i in range(len(img)):
+        video.write(img[i])
     
     
     # Tablas
@@ -404,14 +435,14 @@ def main(genetico):
         #fig.show() #usar para ver las tablas, no recomendado en muchas generaciones
         fig.write_image("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=650)
         fig.layout.update(title="Tabla"+str(i))
-    img = []   
-    for i in range(len(generaciones)):
-        img.append(cv2.imread("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png"))
-    alto, ancho = img[0].shape[:2]
-    video = cv2.VideoWriter('codigo_genetico\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
-    for i in range(len(img)):
-        video.write(img[i]) 
-    print("OK")
+    # img = []   
+    # for i in range(len(generaciones)):
+    #     img.append(cv2.imread("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png"))
+    # alto, ancho = img[0].shape[:2]
+    # video = cv2.VideoWriter('codigo_genetico\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
+    # for i in range(len(img)):
+    #     video.write(img[i]) 
+    # print("OK")
     interfaz.centro_x.setText("X = "+str(dna.x_centro))
     interfaz.centro_y.setText("Y = "+str(dna.y_centro))
     interfaz.estado.setText("Mejor individuo: " + str(mejor_individuo[-1]))
