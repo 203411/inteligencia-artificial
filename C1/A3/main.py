@@ -13,7 +13,7 @@ import xlsxwriter
 class DNA():
     pasajeros_id =[]
     
-    def __init__(self, poblacion_i, poblacion_f, pmi, pmg, p_cruza, generaciones, cantidad, filas,ancho_pasillo, maximizar, verbose = True):
+    def __init__(self, poblacion_i, poblacion_f, pmi, pmg, p_cruza, generaciones, cantidad, filas,ancho_pasillo, media, desviacion, maximizar, verbose = True):
         self.poblacion_i = poblacion_i
         self.poblacion_f = poblacion_f
         self.pmi = pmi
@@ -29,10 +29,12 @@ class DNA():
         self.columnas = 4
         self.x_centro = ((80*4)+self.ancho_pasillo)/2
         self.y_centro = (self.filas*80)/2
+        self.media = media
+        self.desviacion = desviacion
     
     def generar_pasajeros(self): #generacion de pasajeros
         for i in range(self.cantidad):
-            self.masa.append(round(normalvariate(75,10)))
+            self.masa.append(round(normalvariate(self.media,self.desviacion)))
         
     def generar_poblacion(self):
         poblacion = []
@@ -242,10 +244,6 @@ class DNA():
         if poblacion.__len__() > poblacion_maxima:
             while poblacion.__len__() > poblacion_maxima:
                 poblacion.pop() 
-        else:
-            eliminar = int(len(poblacion)/5)
-            for i in range(eliminar):
-                poblacion.pop()
         # Eliminar individuos repetidos
         for individuo in poblacion:
             while(poblacion.count(individuo) > 1):
@@ -286,7 +284,98 @@ def crear_excel(individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_mas
             row+=1
         row+=1
     libro.close()
+
+def crear_graficas_dinamicas(generaciones):
+    for i in range(len(generaciones)):
+        centro_x=[]
+        centro_y=[]
+        for j in range(generaciones[i].__len__()):
+            centro_x.append(generaciones[i][j][3])
+            centro_y.append(generaciones[i][j][4])
+        
+        fig,aux=plt.subplots()
+        x=np.array(centro_x)
+        y=np.array(centro_y)
+        plt.grid()
+        plt.scatter(x,y,label='Individuos')
+        x_centro=np.array([dna.x_centro])
+        y_centro=np.array([dna.y_centro])
+        plt.scatter(x_centro,y_centro,label='Centro de masa')
+        aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
+        aux.set_xlabel('X',fontdict={'fontsize':15})
+        aux.set_ylabel('Y',fontdict={'fontsize':1})
+        aux.legend(loc='upper right')
+        os.makedirs("codigo_genetico/Imagenes/GraficaUnitaria", exist_ok=True)
+        plt.savefig(f'codigo_genetico/Imagenes/GraficaUnitaria/Generacion{i+1}')
+        plt.close()
+    
+    img = []
+    for i in range(len(generaciones)):
+        img.append(cv2.imread("codigo_genetico/Imagenes/GraficaUnitaria/Generacion"+str(i+1)+".png"))
+    alto, ancho, canales = img[0].shape[:3]
+    video = cv2.VideoWriter('codigo_genetico/Imagenes/Video/Graficas.avi', cv2.VideoWriter_fourcc(*'DIVX'), 3, (ancho, alto))
+    for i in range(len(img)):
+        video.write(img[i])
+    print("Graficas dinamicas creadas")
+    
+
+def crear_graficas_estaticas(generaciones,centro_masa_x,centro_masa_y,dna):
+    for i in range(len(generaciones)):
+        centro_x=[]
+        centro_y=[]
+        for j in range(generaciones[i].__len__()):
+            centro_x.append(generaciones[i][j][3])
+            centro_y.append(generaciones[i][j][4])
+        
+        fig,aux=plt.subplots()
+        x=np.array(centro_x)
+        y=np.array(centro_y)
+        # plt.xlim(min(centro_masa_x[0])-1,max(centro_masa_x[0])+1)
+        # plt.ylim(min(centro_masa_y[0])-1,max(centro_masa_y[0])+1)
+        plt.xlim(dna.x_centro-55, dna.x_centro+55)
+        plt.ylim(dna.y_centro-45, dna.y_centro+45)
+        plt.grid(linewidth=0.5, color= "gray")
+        plt.scatter(x,y,label='Individuos', s = 10)
+        x_centro=np.array([dna.x_centro])
+        y_centro=np.array([dna.y_centro])
+        plt.scatter(x_centro,y_centro,label='Centro de masa')
+        aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
+        aux.set_xlabel('X',fontdict={'fontsize':15})
+        aux.set_ylabel('Y',fontdict={'fontsize':1})
+        aux.legend(loc='upper right')
+        os.makedirs("codigo_genetico/Imagenes/Ubicacion", exist_ok=True)
+        plt.savefig(f'codigo_genetico/Imagenes/Ubicacion/Generacion{i+1}')
+        plt.close()
+    
+    img = []
+    for i in range(len(generaciones)):
+        img.append(cv2.imread("codigo_genetico/Imagenes/Ubicacion/Generacion"+str(i+1)+".png"))
+    alto, ancho, canales = img[0].shape[:3]
+    video = cv2.VideoWriter('codigo_genetico/Imagenes/Video/Ubicacion.avi', cv2.VideoWriter_fourcc(*'DIVX'), 3, (ancho, alto))
+    for i in range(len(img)):
+        video.write(img[i])
+    print("Graficas y videos creados")
    
+   
+def crear_tablas(generaciones,individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_masa_x, centro_masa_y, aptitudes):
+    for i in range(len(generaciones)):
+        fig = go.Figure(data=[go.Table(
+            columnwidth = [400,70,70,80,80,70],
+            header=dict(values=['Individuo',"Usados","No usados",  'Centro de Masa X', 'Centro de Masa Y',"Aptitud"]),
+            cells=dict(values=[individuos_mostrar[i],usados_mostrar[i],no_usados_mostrar[i],centro_masa_x[i],centro_masa_y[i],aptitudes[i]]))
+        ])
+        
+        #fig.show() #usar para ver las tablas, no recomendado en muchas generaciones
+        fig.write_image("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=650)
+        fig.layout.update(title="Tabla"+str(i))
+    # img = []   
+    # for i in range(len(generaciones)):
+    #     img.append(cv2.imread("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png"))
+    # alto, ancho = img[0].shape[:2]
+    # video = cv2.VideoWriter('codigo_genetico\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
+    # for i in range(len(img)):
+    #     video.write(img[i]) 
+    print("Tablas creadas")
         
 def main(genetico):
 
@@ -316,10 +405,6 @@ def main(genetico):
         generaciones.append(poblacion)
         print("Generacion: ", g+1, " de ", dna.generaciones)
         # print(poblacion)
-
-    # print("Mejores Individuos: ",mejor_individuo)
-    # print("Promedio: ",promedio)
-    # print("Peores Individuos: ",peor_individuo)
     
     try:
         rmtree("codigo_genetico\Imagenes")
@@ -372,7 +457,6 @@ def main(genetico):
             masa_x_peores.append(generaciones[i][(tamanio-5)+j][3])
             masa_y_peores.append(generaciones[i][(tamanio-5)+j][4])
             peores_aptitudes.append(generaciones[i][(tamanio-5)+j][5])
-            
                         
         set_individuo = (individuos +  individuos_peores)
         set_masa_x = (masa_x + masa_x_peores)
@@ -388,63 +472,13 @@ def main(genetico):
         usados_mostrar.append(set_usados)
         no_usados_mostrar.append(set_no_usados)
 
-    crear_excel(individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_masa_x, centro_masa_y, aptitudes)
+    crear_excel(individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_masa_x, centro_masa_y, aptitudes)   
+    # crear_graficas_dinamicas(generaciones)
+    crear_graficas_estaticas(generaciones,centro_masa_x, centro_masa_y,dna)
+    # crear_tablas(generaciones)
     
-    for i in range(len(generaciones)):
-        centro_x=[]
-        centro_y=[]
-        for j in range(generaciones[i].__len__()):
-            centro_x.append(generaciones[i][j][3])
-            centro_y.append(generaciones[i][j][4])
-        
-        fig,aux=plt.subplots()
-        x=np.array(centro_x)
-        y=np.array(centro_y)
-        # plt.xlim(0,280+dna.ancho_pasillo)
-        # plt.ylim(0,(80*dna.filas))
-        plt.grid()
-        plt.scatter(x,y,label='Individuos')
-        x_centro=np.array([dna.x_centro])
-        y_centro=np.array([dna.y_centro])
-        plt.scatter(x_centro,y_centro,label='Centro de masa')
-        aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
-        aux.set_xlabel('X',fontdict={'fontsize':15})
-        aux.set_ylabel('Y',fontdict={'fontsize':1})
-        aux.legend(loc='upper right')
-        os.makedirs("codigo_genetico/Imagenes/Ubicacion", exist_ok=True)
-        plt.savefig(f'codigo_genetico/Imagenes/Ubicacion/Generacion{i+1}')
-        plt.close()
-    
-    img = []
-    for i in range(len(generaciones)):
-        img.append(cv2.imread("codigo_genetico/Imagenes/Ubicacion/Generacion"+str(i+1)+".png"))
-    alto, ancho, canales = img[0].shape[:3]
-    video = cv2.VideoWriter('codigo_genetico/Imagenes/Video/Ubicacion.avi', cv2.VideoWriter_fourcc(*'DIVX'), 3, (ancho, alto))
-    for i in range(len(img)):
-        video.write(img[i])
-    
-    
-    # Tablas
-    for i in range(len(generaciones)):
-        fig = go.Figure(data=[go.Table(
-            columnwidth = [400,70,70,80,80,70],
-            header=dict(values=['Individuo',"Usados","No usados",  'Centro de Masa X', 'Centro de Masa Y',"Aptitud"]),
-            cells=dict(values=[individuos_mostrar[i],usados_mostrar[i],no_usados_mostrar[i],centro_masa_x[i],centro_masa_y[i],aptitudes[i]]))
-        ])
-        
-        #fig.show() #usar para ver las tablas, no recomendado en muchas generaciones
-        fig.write_image("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=650)
-        fig.layout.update(title="Tabla"+str(i))
-    # img = []   
-    # for i in range(len(generaciones)):
-    #     img.append(cv2.imread("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png"))
-    # alto, ancho = img[0].shape[:2]
-    # video = cv2.VideoWriter('codigo_genetico\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
-    # for i in range(len(img)):
-    #     video.write(img[i]) 
-    # print("OK")
-    interfaz.centro_x.setText("X = "+str(dna.x_centro))
-    interfaz.centro_y.setText("Y = "+str(dna.y_centro))
+    interfaz.centro_x.setText("X = "+str(centro_masa_x[-1][0]))
+    interfaz.centro_y.setText("Y = "+str(centro_masa_y[-1][0]))
     interfaz.estado.setText("Mejor individuo: " + str(mejor_individuo[-1]))
     interfaz.estado2.setText("Proceso Finalizado")
     # app.closeAllWindows()
@@ -461,6 +495,13 @@ def send():
         filas = int(interfaz.filas.text())
         cantidad = int(interfaz.cantidad.text())
         pasillo = int(interfaz.pasillo.text())
+        media = int(interfaz.media.text())
+        desviacion = int(interfaz.desviacion.text())
+        
+        if(desviacion == ""):
+            desviacion = 10
+        if(media == ""):
+            media = 75
        
         if(filas <=0 or poblacion_inicial < 2 or poblacion_final < 2 or pmg <= 0 or pmi <= 0 or cruzamiento <= 0 or generaciones <= 1):
             interfaz.estado.setText("Error Debes revisar tus datos de entrada")
@@ -482,7 +523,7 @@ def send():
            
     if(run):
         interfaz.estado.setText("")
-        dna = DNA( poblacion_i = poblacion_inicial, poblacion_f = poblacion_final, pmi = pmi, pmg = pmg, p_cruza = cruzamiento, generaciones = generaciones,cantidad = cantidad,  filas = filas, ancho_pasillo = pasillo, maximizar = False, verbose = True)
+        dna = DNA( poblacion_i = poblacion_inicial, poblacion_f = poblacion_final, pmi = pmi, pmg = pmg, p_cruza = cruzamiento, generaciones = generaciones,cantidad = cantidad,  filas = filas, ancho_pasillo = pasillo, media = media, desviacion = desviacion, maximizar = False, verbose = True)
         main(dna)
         
     
@@ -492,5 +533,5 @@ if __name__ == "__main__":
     interfaz.show()
     interfaz.btn_ok.clicked.connect(send)
     sys.exit(app.exec())
-    # dna = DNA( poblacion_i = 50, poblacion_f = 100, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 100,cantidad = 100, filas = 20,ancho_pasillo = 100,  maximizar = False, verbose = True)
+    # dna = DNA( poblacion_i = 50, poblacion_f = 100, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 100,cantidad = 100, filas = 20,ancho_pasillo = 100, media = 75, desviacion = 10,  maximizar = False, verbose = True)
     # main(dna)
