@@ -33,28 +33,31 @@ class DNA():
         self.desviacion = desviacion
     
     def generar_pasajeros(self): #generacion de pasajeros
-        for i in range(self.cantidad):
-            self.masa.append(round(normalvariate(self.media,self.desviacion)))
+        for i in range(self.filas*4):
+            if(i<self.cantidad):
+                self.masa.append(round(normalvariate(self.media, self.desviacion),5))
+            else:
+                self.masa.append(0)
         
     def generar_poblacion(self):
         poblacion = []
-        individuos = self.cantidad
+        individuos = self.filas*4
         valor = []
         ids = []
         pasajeros = self.generar_pasajeros()
         
-        self.cantidad_pasajeros = individuos
-        for i in range(self.cantidad):
+        # self.cantidad_pasajeros = individuos
+        for i in range(self.filas*4):
             ids.append(i+1)
-        for i in range(self.cantidad_pasajeros):
+        for i in range(self.filas*4):
             valor.append(self.masa[i])
         self.pasajeros_id = {i:j for i,j in zip(ids, valor)}
         
         for i in range(self.poblacion_i):
-            movimientos = np.random.randint(0, int(individuos/2))
+            movimientos = np.random.randint(0, int((self.filas*4)))
             desordenar_ids = ids.copy()
             for j in range(movimientos):
-                new_posicion = np.random.randint(0, individuos)
+                new_posicion = np.random.randint(0, (self.filas*4))
                 valor_actual = 0
                 nuevo_valor = 0
                 valor_actual = desordenar_ids[j]
@@ -82,26 +85,15 @@ class DNA():
         distribucion_asientos = []
         for individuo in range(poblacion.__len__()):
             area_pasajeros = []
-            
-            aux_usados = []
-            aux_no_usados = []
             columnas = 4
             i=0
             for fila in range(self.filas):  # acomodar en los asientos
                 area_pasajeros.append([])
                 for columna in range(self.columnas):
-                    if(i<self.cantidad):
-                        pasajero_masa = poblacion[individuo][i]
-                    if(np.random.rand() < 0.8) and (i<self.cantidad):
-                        area_pasajeros[fila].append(self.pasajeros_id[pasajero_masa])
-                        aux_usados.append(poblacion[individuo][i])
-                    else:
-                        area_pasajeros[fila].append(0)
-                        if(i<self.cantidad):
-                            aux_no_usados.append(poblacion[individuo][i])
+                    pasajero_masa = poblacion[individuo][i]
+                    # print(poblacion[individuo])
+                    area_pasajeros[fila].append(self.pasajeros_id[pasajero_masa])
                     i+=1
-            usados.append(aux_usados)
-            no_usados.append(aux_no_usados)
             distribucion_asientos.append(area_pasajeros)
         fitness = []
         x = [40,120,200 + (self.ancho_pasillo),280 + (self.ancho_pasillo)]
@@ -114,23 +106,20 @@ class DNA():
                 for j in range(self.columnas):
                     if(distribucion_asientos[individuo][i][j] != 0):                                    
                         total_masa += distribucion_asientos[individuo][i][j]
-                        
                         pasajero_x += x[j] * distribucion_asientos[individuo][i][j]
                         pasajero_y += y[i] * distribucion_asientos[individuo][i][j]
-                    # print("Individuo ",individuo," ",poblacion[individuo],"\nPosicion X: ",x[j],"\nPosicion Y: ",y[i],"\nMasa: ",distribucion_asientos[individuo][i][j],"\n")
             pasajero_x /= total_masa
             pasajero_y /= total_masa
-            # print("Vuelta: ",individuo," X: ",pasajero_x," Y: ",pasajero_y," Total masa: ",total_masa)
             aptitud = self.calcular_aptitud(pasajero_x, pasajero_y)
             # print("Aptitud: ",aptitud,"\n")
-            conjunto_datos = poblacion[individuo], usados[individuo],no_usados[individuo],round(pasajero_x,5), round(pasajero_y,5),aptitud
+            conjunto_datos = poblacion[individuo], round(pasajero_x,5), round(pasajero_y,5),aptitud
             fitness.append(conjunto_datos)       
         return fitness
 
     def seleccion(self, maximizar, fit):
         seleccionados = []
         fitness = fit.copy()       
-        fitness.sort(key=lambda x: x[5])
+        fitness.sort(key=lambda x: x[3])
             
         for i in range(int(fitness.__len__()/2)):
             fitness.pop() # Se elimina a la mitad de la población con peor fitness y que no son utilizados
@@ -139,7 +128,7 @@ class DNA():
             seleccionados.append(fitness[np.random.randint(0, fitness.__len__())])
         if(len(seleccionados)%2 != 0):
             seleccionados.pop()
-        seleccionados.sort(key=lambda x: x[5])
+        seleccionados.sort(key=lambda x: x[3])
         
         return seleccionados
         
@@ -164,7 +153,7 @@ class DNA():
 
     def no_encontrados(self, paquete):    
         faltantes = [] 
-        for i in range(self.cantidad):
+        for i in range(self.filas*4):
             bandera = False
             for j in range(len(paquete)):
                 if(paquete[j] == i+1):
@@ -240,7 +229,7 @@ class DNA():
         return poblacion        
 
     def poda(self, poblacion, poblacion_maxima):
-        poblacion.sort(key=lambda x: x[5])
+        poblacion.sort(key=lambda x: x[3])
         if poblacion.__len__() > poblacion_maxima:
             while poblacion.__len__() > poblacion_maxima:
                 poblacion.pop() 
@@ -255,32 +244,28 @@ class DNA():
         valores_ordenados = []
         valores_ordenar = []
         for i in range(valores.__len__()):
-            valores_ordenar.append((valores[i][5]))
+            valores_ordenar.append((valores[i][3]))
         valores_ordenados = sorted(valores_ordenar, key = lambda x:[x]) 
         return valores_ordenados
 
-def crear_excel(individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_masa_x, centro_masa_y, aptitudes):
+def crear_excel(individuos_mostrar, centro_masa_x, centro_masa_y, aptitudes):
     os.makedirs("codigo_genetico\Excel/", exist_ok=True)
     libro = xlsxwriter.Workbook('codigo_genetico\Excel\AG.xlsx')
     hoja = libro.add_worksheet()
     hoja.write(0,0,"Generacion")
     hoja.write(0,1,"Individuo")
-    hoja.write(0,2,"Usados")
-    hoja.write(0,3,"No Usados")
-    hoja.write(0,4,"Centro de Masa X")
-    hoja.write(0,5,"Centro de Masa Y")
-    hoja.write(0,6,"Aptitud")
+    hoja.write(0,2,"Centro de Masa X")
+    hoja.write(0,3,"Centro de Masa Y")
+    hoja.write(0,4,"Aptitud")
     
     row = 1
     for g in range(individuos_mostrar.__len__()):
         for i in range(individuos_mostrar[g].__len__()):
             hoja.write(row,0,str(g+1))
             hoja.write(row,1,str(individuos_mostrar[g][i]))
-            hoja.write(row,2,str(usados_mostrar[g][i]))
-            hoja.write(row,3,str(no_usados_mostrar[g][i]))
-            hoja.write(row,4,centro_masa_x[g][i])
-            hoja.write(row,5,centro_masa_y[g][i])
-            hoja.write(row,6,aptitudes[g][i])
+            hoja.write(row,2,centro_masa_x[g][i])
+            hoja.write(row,3,centro_masa_y[g][i])
+            hoja.write(row,4,aptitudes[g][i])
             row+=1
         row+=1
     libro.close()
@@ -290,8 +275,8 @@ def crear_graficas_dinamicas(generaciones):
         centro_x=[]
         centro_y=[]
         for j in range(generaciones[i].__len__()):
-            centro_x.append(generaciones[i][j][3])
-            centro_y.append(generaciones[i][j][4])
+            centro_x.append(generaciones[i][j][1])
+            centro_y.append(generaciones[i][j][2])
         
         fig,aux=plt.subplots()
         x=np.array(centro_x)
@@ -319,26 +304,27 @@ def crear_graficas_dinamicas(generaciones):
     print("Graficas dinamicas creadas")
     
 
-def crear_graficas_estaticas(generaciones,centro_masa_x,centro_masa_y,dna):
+def crear_graficas_estaticas(generaciones,dna):
     for i in range(len(generaciones)):
         centro_x=[]
         centro_y=[]
         for j in range(generaciones[i].__len__()):
-            centro_x.append(generaciones[i][j][3])
-            centro_y.append(generaciones[i][j][4])
-        
+            centro_x.append(generaciones[i][j][1])
+            centro_y.append(generaciones[i][j][2])
+        # print(f'Generacion: {i+1} Centro de masa: {centro_x},{centro_y}')
         fig,aux=plt.subplots()
+        plt.xlim(dna.x_centro-100, dna.x_centro+100)
+        plt.ylim(dna.y_centro-100, dna.y_centro+100)
+        
         x=np.array(centro_x)
         y=np.array(centro_y)
-        # plt.xlim(min(centro_masa_x[0])-1,max(centro_masa_x[0])+1)
-        # plt.ylim(min(centro_masa_y[0])-1,max(centro_masa_y[0])+1)
-        plt.xlim(dna.x_centro-55, dna.x_centro+55)
-        plt.ylim(dna.y_centro-45, dna.y_centro+45)
-        plt.grid(linewidth=0.5, color= "gray")
         plt.scatter(x,y,label='Individuos', s = 10)
+        
         x_centro=np.array([dna.x_centro])
         y_centro=np.array([dna.y_centro])
         plt.scatter(x_centro,y_centro,label='Centro de masa')
+        
+        plt.grid(linewidth=0.5, color= "gray")
         aux.set_title(f'Generacion: {i+1}',fontdict={'fontsize':20})
         aux.set_xlabel('X',fontdict={'fontsize':15})
         aux.set_ylabel('Y',fontdict={'fontsize':1})
@@ -368,13 +354,13 @@ def crear_tablas(generaciones,individuos_mostrar,usados_mostrar, no_usados_mostr
         #fig.show() #usar para ver las tablas, no recomendado en muchas generaciones
         fig.write_image("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=650)
         fig.layout.update(title="Tabla"+str(i))
-    # img = []   
-    # for i in range(len(generaciones)):
-    #     img.append(cv2.imread("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png"))
-    # alto, ancho = img[0].shape[:2]
-    # video = cv2.VideoWriter('codigo_genetico\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
-    # for i in range(len(img)):
-    #     video.write(img[i]) 
+    img = []   
+    for i in range(len(generaciones)):
+        img.append(cv2.imread("codigo_genetico\Imagenes\Tabla/Tabla"+str(i)+".png"))
+    alto, ancho = img[0].shape[:2]
+    video = cv2.VideoWriter('codigo_genetico\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
+    for i in range(len(img)):
+        video.write(img[i]) 
     print("Tablas creadas")
         
 def main(genetico):
@@ -429,56 +415,44 @@ def main(genetico):
     tamanio = (len(generaciones[0]))
     aptitudes = []
     
-    for i in range(len(generaciones)):
-        individuos = []
-        individuos_peores = []
-        masa_x = []
-        masa_y = []
-        masa_x_peores = []
-        masa_y_peores = []
-        usados = []
-        no_usados = []
-        mejores_aptitudes = []
-        peores_aptitudes = []
-        usados_peores = []
-        no_usados_peores = []
+    # for i in range(len(generaciones)):
+    #     individuos = []
+    #     individuos_peores = []
+    #     masa_x = []
+    #     masa_y = []
+    #     masa_x_peores = []
+    #     masa_y_peores = []
+    #     mejores_aptitudes = []
+    #     peores_aptitudes = []
         
-        # Tomar a los 5 mejores y los 5 peores de cada generacion
-        for j in range(5):
-            individuos.append(generaciones[i][j][0]) # individuos
-            usados.append(generaciones[i][j][1]) # usados
-            no_usados.append(generaciones[i][j][2]) # no usados
-            masa_x.append(generaciones[i][j][3]) # masa x
-            masa_y.append(generaciones[i][j][4]) # masa y
-            mejores_aptitudes.append(generaciones[i][j][5])
-            individuos_peores.append(generaciones[i][(tamanio-5)+j][0]) 
-            usados_peores.append(generaciones[i][(tamanio-5)+j][1])
-            no_usados_peores.append(generaciones[i][(tamanio-5)+j][2])
-            masa_x_peores.append(generaciones[i][(tamanio-5)+j][3])
-            masa_y_peores.append(generaciones[i][(tamanio-5)+j][4])
-            peores_aptitudes.append(generaciones[i][(tamanio-5)+j][5])
+    #     # Tomar a los 5 mejores y los 5 peores de cada generacion
+    #     for j in range(5):
+    #         individuos.append(generaciones[i][j][0]) # individuos
+    #         masa_x.append(generaciones[i][j][1]) # masa x
+    #         masa_y.append(generaciones[i][j][2]) # masa y
+    #         mejores_aptitudes.append(generaciones[i][j][3])
+    #         individuos_peores.append(generaciones[i][(tamanio-5)+j][0]) 
+    #         masa_x_peores.append(generaciones[i][(tamanio-5)+j][1])
+    #         masa_y_peores.append(generaciones[i][(tamanio-5)+j][2])
+    #         peores_aptitudes.append(generaciones[i][(tamanio-5)+j][3])
                         
-        set_individuo = (individuos +  individuos_peores)
-        set_masa_x = (masa_x + masa_x_peores)
-        set_masa_y = (masa_y + masa_y_peores)
-        set_aptitud = (mejores_aptitudes + peores_aptitudes)
-        set_usados = (usados + usados_peores)
-        set_no_usados = (no_usados + no_usados_peores)
+    #     set_individuo = (individuos +  individuos_peores)
+    #     set_masa_x = (masa_x + masa_x_peores)
+    #     set_masa_y = (masa_y + masa_y_peores)
+    #     set_aptitud = (mejores_aptitudes + peores_aptitudes)
         
-        individuos_mostrar.append(set_individuo)
-        centro_masa_x.append(set_masa_x)
-        centro_masa_y.append(set_masa_y)
-        aptitudes.append(set_aptitud)
-        usados_mostrar.append(set_usados)
-        no_usados_mostrar.append(set_no_usados)
+    #     individuos_mostrar.append(set_individuo)
+    #     centro_masa_x.append(set_masa_x)
+    #     centro_masa_y.append(set_masa_y)
+    #     aptitudes.append(set_aptitud)
 
-    crear_excel(individuos_mostrar,usados_mostrar, no_usados_mostrar, centro_masa_x, centro_masa_y, aptitudes)   
-    # crear_graficas_dinamicas(generaciones)
-    crear_graficas_estaticas(generaciones,centro_masa_x, centro_masa_y,dna)
+    # crear_excel(individuos_mostrar,centro_masa_x, centro_masa_y, aptitudes)   
+    
+    crear_graficas_estaticas(generaciones,dna)
     # crear_tablas(generaciones)
     
-    interfaz.centro_x.setText("X = "+str(centro_masa_x[-1][0]))
-    interfaz.centro_y.setText("Y = "+str(centro_masa_y[-1][0]))
+    interfaz.centro_x.setText("X = "+str(generaciones[-1][-1][1]))
+    interfaz.centro_y.setText("Y = "+str(generaciones[-1][-1][2]))
     interfaz.estado.setText("Mejor individuo: " + str(mejor_individuo[-1]))
     interfaz.estado2.setText("Proceso Finalizado")
     # app.closeAllWindows()
@@ -512,9 +486,10 @@ def send():
             interfaz.estado.setText("la probabilidad de cruza debe ser menor a 1")
             interfaz.estado.setStyleSheet("color: red")
             run = False
-        if(cantidad<1):
-            interfaz.estado.setText("No puedes tener 0 pasajeros")
-            interfaz.setStyleSheet("red");
+        if(cantidad>(filas*4)):
+            interfaz.estado.setText("No puedes tener más pasajeros que asientos")
+            interfaz.estado.setStyleSheet("color:red");
+            run = False
     
     except:
         interfaz.estado.setText("Los datos no son validos")
@@ -533,5 +508,5 @@ if __name__ == "__main__":
     interfaz.show()
     interfaz.btn_ok.clicked.connect(send)
     sys.exit(app.exec())
-    # dna = DNA( poblacion_i = 50, poblacion_f = 100, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 100,cantidad = 100, filas = 20,ancho_pasillo = 100, media = 75, desviacion = 10,  maximizar = False, verbose = True)
+    # dna = DNA( poblacion_i = 50, poblacion_f = 100, pmi = 0.9, pmg = 0.9, p_cruza = 0.9, generaciones = 100,cantidad = 35, filas = 20,ancho_pasillo = 100, media = 75, desviacion = 10,  maximizar = False, verbose = True)
     # main(dna)
