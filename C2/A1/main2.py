@@ -30,7 +30,7 @@ class Perceptron ():
         self.X = x
         self.Y = y
         self.pesos = np.random.rand(len(x[0]))
-        #print("Pesos:",self.pesos)
+        print("Pesos iniciales:",self.pesos)
 
     def bias(self, x):
         x_bias = []
@@ -109,6 +109,19 @@ def inicializacion_alg():
     try:
         aprendizaje = float(window.lineEditTAprendizaje.text())
         umbral = float(window.lineEditEPermisible.text())
+        if(aprendizaje > 1 or aprendizaje <= 0):
+            window.labelMensaje.setText("El valor de aprendizaje debe estar entre 0 y 1")
+            window.labelMensaje.setStyleSheet("color: red ; font-size: 10pt")
+            bandera = False
+        if(umbral <= 0):
+            window.labelMensaje.setText("El valor del umbral debe ser mayor a 0")
+            window.labelMensaje.setStyleSheet("color: red ; font-size: 10pt")
+            bandera = False
+        if(archivo == ""):
+            window.labelMensaje.setText("Seleccione un archivo")
+            window.labelMensaje.setStyleSheet("color: red ; font-size: 10pt")
+            bandera = False
+            
     except:
         bandera = False
 
@@ -153,7 +166,10 @@ def algoritmo(aprendizaje, umbral,archivo):
         i += 1     
 
     #print("errores:",errores)
-    print('Vueltas t:',i)
+    print("Pesos finales:", perceptron.pesos)
+    print('Cantidad de epocas de entrenamiento:',i)
+    print("Maximo error observado:",max(errores))
+    # print('Vueltas t:',i)
     graficar_error(errores, a)
     graficar_yc(ycal, perceptron)
     pesos = [pesosSesgo,pesosX1,pesosX2,pesosX3]
@@ -193,7 +209,6 @@ def graficar_pesos(pesos):
     plt.plot(pesos[1], label="X1", color="green",linestyle="-")
     plt.plot(pesos[2], label="X2", color="red",linestyle="-")
     plt.plot(pesos[3], label="X3", color="black",linestyle="-")
-    
     plt.legend()
     os.makedirs("assets\Graficas\Pesos", exist_ok=True)
     plt.savefig("assets\Graficas\Pesos\Pesos.png")
@@ -211,6 +226,8 @@ def graficar_yc(ycal,perceptron):
     
 def abrirArchivo():
     global archivo
+    
+    archivo = ""
     archivo = QtWidgets.QFileDialog.getOpenFileName(None, 'Abrir Archivo', 'C:\\', 'Text Files (*.csv)')[0]
     window.labelMensaje.setText("Archivo Cargado")
 
