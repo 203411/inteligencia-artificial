@@ -44,8 +44,8 @@ class Neurona():
         return x_bias
         
     def calcular_u(self):
-        w_transpuesta = np.transpose(self.pesos)
-        u = (np.dot(self.X, w_transpuesta))
+        transpuestaW = np.transpose(self.pesos)
+        u = np.linalg.multi_dot([self.X, transpuestaW])
         return u
 
     def funcion_activacion_lineal(self, u):
@@ -57,22 +57,27 @@ class Neurona():
             error.append(self.Y[i] - yc[i])
         return error
     
-    def delta_W(self, error):
-        et = np.transpose(error)
+    def delta_W(self, e):
+        ret = np.transpose(e)
         for i in range(len(self.pesos)):
-            delta_W = (np.dot(et, self.X) * self.aprendizaje)
-        return delta_W
+            dw = np.linalg.multi_dot([ret,self.X])*self.aprendizaje
+        return dw
 
     def nueva_w(self, delta_w):
-        w_nuevo = self.pesos + delta_w
-        self.pesos = w_nuevo
-        return w_nuevo
+        nueva_W = self.pesos + deltaW
+        self.pesos = nueva_W
+        return nueva_W
 
     def calcular_e(self, error):
+        #LA COMPLETA SEGUN
         e = 0
+        n = len(error)
         for i in range(len(error)):
             e = e + error[i]**2
-        return m.sqrt(e)
+        mse = e / n
+        rmse = m.sqrt(mse)
+        return rmse
+        
 
 neurona = Neurona(100, 0.000001, 0.5)
 

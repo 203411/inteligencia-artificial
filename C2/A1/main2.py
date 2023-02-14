@@ -141,6 +141,7 @@ def algoritmo(aprendizaje, umbral,archivo):
     pesosX1 = []
     pesosX2 = []
     pesosX3 = []
+    errores_por_epoca = []
     perceptron.leer_Archivo(archivo)
     e = 2000
     i = 0
@@ -148,8 +149,6 @@ def algoritmo(aprendizaje, umbral,archivo):
         u = perceptron.calculo_u()
         ycal = perceptron.funcion_activacion(u)
         error = perceptron.cal_error(ycal)
-        #print("Error antes de deltaW", error)
-        graficar_error2(error, i)
         deltaW = perceptron.delta_W(error)
         pesosSesgo.append(perceptron.pesos[0])
         pesosX1.append(perceptron.pesos[1])
@@ -158,10 +157,8 @@ def algoritmo(aprendizaje, umbral,archivo):
         perceptron.nv_W(deltaW)
         e = perceptron.cal_error2(error)
 
-        print("e:",e)
-        #print("deltaW",deltaW)
-        #print("Pesos",perceptron.pesos)
-        
+        # print("e:",e)
+        errores_por_epoca.append(error)
         errores.append(e)
         i += 1     
 
@@ -170,6 +167,7 @@ def algoritmo(aprendizaje, umbral,archivo):
     print('Cantidad de epocas de entrenamiento:',i)
     print("Maximo error observado:",max(errores))
     # print('Vueltas t:',i)
+    graficar_error2(errores_por_epoca, i)
     graficar_error(errores, a)
     graficar_yc(ycal, perceptron)
     pesos = [pesosSesgo,pesosX1,pesosX2,pesosX3]
@@ -178,6 +176,7 @@ def algoritmo(aprendizaje, umbral,archivo):
     window.labelMensaje.setStyleSheet("color: Green ; font-size: 10pt")
     
     window.labelMensaje.update()
+    
     
     
         
@@ -192,23 +191,24 @@ def graficar_error(errores, a):
     plt.close()
 
 def graficar_error2(error,i):
-    plt.title("Error observador:"+str(i))
-    plt.xlabel("Identificador")
-    plt.ylabel("Valor del error")
-    plt.plot(error, label="Error Observado:",linestyle="-")
-    plt.legend()
-    os.makedirs("assets\Graficas\ErrorObservado", exist_ok=True)
-    plt.savefig("assets\Graficas\ErrorObservado\ErrorObservado"+str(i)+".png")
-    plt.close()
+    for x in range(i):
+        plt.title("Error observador:"+str(i))
+        plt.xlabel("Identificador")
+        plt.ylabel("Valor del error")
+        plt.plot(error[x], label="Error Observado:",linestyle="", marker=".")
+        plt.legend()
+        os.makedirs("assets\Graficas\ErrorObservado", exist_ok=True)
+        plt.savefig("assets\Graficas\ErrorObservado\ErrorObservado"+str(x)+".png")
+        plt.close()
 
 def graficar_pesos(pesos):
     plt.title("Evolución de los pesos")
     plt.xlabel("Iteracion")
     plt.ylabel("Valor")
-    plt.plot(pesos[0], label="Sesgo", color="blue",linestyle="-")
-    plt.plot(pesos[1], label="X1", color="green",linestyle="-")
-    plt.plot(pesos[2], label="X2", color="red",linestyle="-")
-    plt.plot(pesos[3], label="X3", color="black",linestyle="-")
+    plt.plot(pesos[0], label="W0", color="blue",linestyle="-")
+    plt.plot(pesos[1], label="W1", color="green",linestyle="-")
+    plt.plot(pesos[2], label="W2", color="red",linestyle="-")
+    plt.plot(pesos[3], label="W3", color="black",linestyle="-")
     plt.legend()
     os.makedirs("assets\Graficas\Pesos", exist_ok=True)
     plt.savefig("assets\Graficas\Pesos\Pesos.png")
@@ -218,7 +218,7 @@ def graficar_yc(ycal,perceptron):
     plt.xlabel("Identificador")
     plt.ylabel("Valores Yc y Yd")
     plt.plot(ycal, label="Yc", color="blue",linestyle="-")
-    plt.plot(perceptron.Y, label="Yd", color="green",linestyle="--")
+    plt.plot(perceptron.Y, label="Yd", color="red",linestyle="--")
     plt.legend()
     os.makedirs("assets\Graficas\Ycalculada", exist_ok=True)
     plt.savefig("assets\Graficas\Ycalculada\Ycalculada.png")
