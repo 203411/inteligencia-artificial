@@ -1,67 +1,133 @@
-# %matplotlib inline
+from matplotlib.cbook import flatten
+import numpy as np
+import matplotlib.pyplot as plt
+from pyparsing import java_style_comment
 import tensorflow as tf
-from d2l import tensorflow as d2l
+from tensorflow import keras
+from keras import layers
+from keras.models import Sequential
+import seaborn as sns
 
-class LinearRegressionScratch(d2l.Module):  #@save
-    """The linear regression model implemented from scratch."""
-    def __init__(self, num_inputs, lr, sigma=0.01):
-        super().__init__()
-        self.save_hyperparameters()
-        w = tf.random.normal((num_inputs, 1), mean=0, stddev=0.01)
-        b = tf.zeros(1)
-        self.w = tf.Variable(w, trainable=True)
-        self.b = tf.Variable(b, trainable=True)     
-        
-@d2l.add_to_class(LinearRegressionScratch)  #@save
-def forward(self, X):
-    return tf.matmul(X, self.w) + self.b
+def main():
 
-@d2l.add_to_class(LinearRegressionScratch)  #@save
-def loss(self, y_hat, y):
-    l = (y_hat - y) ** 2 / 2
-    return tf.reduce_mean(l)
+    batch_size = 150
+    img_height = 100
+    img_width = 100
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        "./data/Entrenamiento",
+        image_size=(img_height, img_width),
+        batch_size=batch_size)
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        "./data/validacion",
+        image_size=(img_height, img_width),
+        batch_size=batch_size)
+    class_names = train_ds.class_names
+    print(class_names)
+    plt.figure(figsize=(100, 100))
+    for images, labels in train_ds.take(1):
+        for i in range(100):
+            ax = plt.subplot(10, 10, i + 1)
+            plt.imshow(images[i].numpy().astype("uint8"))
+            plt.title(class_names[labels[i]])
+            plt.axis("off")
+    plt.show()
+    train_ds = train_ds.cache().prefetch(buffer_size=10)
+    val_ds = val_ds.cache().prefetch(buffer_size=10)
+    num_clases = len(class_names)
+    data_augmentation = tf.keras.Sequential(
+    [
+        tf.keras.layers.RandomFlip("horizontal",
+                        input_shape=(img_height,
+                                    img_width,
+                                    3)),
+        tf.keras.layers.RandomRotation(0.1),
+        tf.keras.layers.RandomZoom(0.1),
+    ]
+    )
+    plt.figure(figsize=(10, 10))
+    for images, _ in train_ds.take(1):
+        for i in range(9):
+            augmented_images = data_augmentation(images)
+            ax = plt.subplot(4, 4, i + 1)
+            plt.imshow(augmented_images[0].numpy().astype("uint8"))
+            plt.axis("off")
+    plt.show()
+    modelo = Sequential([
+    data_augmentation,
+    layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
+    layers.Conv2D(32, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(3,3),
+    layers.Conv2D(64, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(3,3),
+    layers.Dropout(0.2),
+    layers.Flatten(),
+    layers.Dense(50, activation='relu'),
+    layers.Dense(50, activation='relu'),
+    layers.Dense(num_clases)
+    ])
+    modelo.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+    modelo.summary()
+    epochs = 50
+    history = modelo.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=epochs)
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
 
-class SGD(d2l.HyperParameters):  #@save
-    """Minibatch stochastic gradient descent."""
-    def __init__(self, lr):
-        self.save_hyperparameters()
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
 
-    def apply_gradients(self, grads_and_vars):
-        for grad, param in grads_and_vars:
-            param.assign_sub(self.lr * grad)
-            
-@d2l.add_to_class(LinearRegressionScratch)  #@save
-def configure_optimizers(self):
-    return SGD(self.lr)
+    epochs_range = range(epochs)
 
-@d2l.add_to_class(d2l.Trainer)  #@save
-def prepare_batch(self, batch):
-    return batch
+    plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, acc, label='Precision de entrenamiento')
+    plt.plot(epochs_range, val_acc, label='Precision de validación')
+    plt.legend(loc='lower right')
+    plt.title('Presicion del Entrenamiento y la Validacion')
 
-@d2l.add_to_class(d2l.Trainer)  #@save
-def fit_epoch(self):
-    self.model.training = True
-    for batch in self.train_dataloader:
-        with tf.GradientTape() as tape:
-            loss = self.model.training_step(self.prepare_batch(batch))
-        grads = tape.gradient(loss, self.model.trainable_variables)
-        if self.gradient_clip_val > 0:
-            grads = self.clip_gradients(self.gradient_clip_val, grads)
-        self.optim.apply_gradients(zip(grads, self.model.trainable_variables))
-        self.train_batch_idx += 1
-    if self.val_dataloader is None:
-        return
-    self.model.training = False
-    for batch in self.val_dataloader:
-        self.model.validation_step(self.prepare_batch(batch))
-        self.val_batch_idx += 1
-        
-        
-        
-model = LinearRegressionScratch(2, lr=0.03)
-data = d2l.SyntheticRegressionData(w=tf.constant([2, -3.4]), b=4.2)
-trainer = d2l.Trainer(max_epochs=3)
-trainer.fit(model, data)
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs_range, loss, label='Error de entrenamiento')
+    plt.plot(epochs_range, val_loss, label='Error de validacion')
+    plt.legend(loc='upper right')
+    plt.title('Error del entrenamiento y validacion')
+    plt.show()
 
-print(f'error in estimating w: {data.w - tf.reshape(model.w, data.w.shape)}')
-print(f'error in estimating b: {data.b - model.b}')
+    for i in range(5):
+        for images, labels in val_ds.take(1):
+            predictions = modelo.predict(images)
+            score = tf.nn.softmax(predictions[i])
+            print(
+            "Esta imagen probablemente pertenece a {} con un {:.2f} porcentaje de seguridad."
+            .format(class_names[np.argmax(score)], 100 * np.max(score)))
+            plt.imshow(images[i].numpy().astype("uint8"))
+            plt.show()
+            break
+
+    test_labels = []
+    test_images = [] 
+    for img, labels in val_ds.take(1):
+        test_images.append(img)
+        test_labels.append(labels)
+
+    y_pred = np.argmax(modelo.predict(test_images), axis=1).flatten()
+    y_true = np.asarray(test_labels).flatten()
+    test_acc = sum(y_pred == y_true) / len(y_true)
+    print(("Test accuracy: {:.2f}%".format(test_acc * 100)))
+    consfusion_matrix = tf.math.confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(10, 10))
+    sns.heatmap(consfusion_matrix.numpy(), 
+    xticklabels=class_names,
+    yticklabels=class_names, 
+    annot=True, fmt="d")
+    plt.title('Matriz de confusion')
+    plt.xlabel('Prediccion')
+    plt.ylabel('Real')
+    plt.show()
+
+    
+if __name__ == '__main__':
+    main()
