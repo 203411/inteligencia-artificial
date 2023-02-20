@@ -96,7 +96,7 @@ def main():
     plt.title('Error del entrenamiento y validacion')
     plt.show()
 
-    for i in range(5):
+    for i in range(8):
         for images, labels in val_ds.take(1):
             predictions = modelo.predict(images)
             score = tf.nn.softmax(predictions[i])
