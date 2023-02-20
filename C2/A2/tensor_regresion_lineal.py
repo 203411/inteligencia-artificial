@@ -1,6 +1,7 @@
 # %matplotlib inline
 import tensorflow as tf
 from d2l import tensorflow as d2l
+import matplotlib.pyplot as plt
 
 class LinearRegressionScratch(d2l.Module):  #@save
     """The linear regression model implemented from scratch."""
@@ -62,6 +63,7 @@ model = LinearRegressionScratch(2, lr=0.03)
 data = d2l.SyntheticRegressionData(w=tf.constant([2, -3.4]), b=4.2)
 trainer = d2l.Trainer(max_epochs=3)
 trainer.fit(model, data)
+plt.show()
 
 print(f'error in estimating w: {data.w - tf.reshape(model.w, data.w.shape)}')
 print(f'error in estimating b: {data.b - model.b}')
