@@ -34,8 +34,8 @@ def get_dataloader(self, train):
     return tf.data.Dataset.from_tensor_slices(process(*data)).batch(
         self.batch_size).map(resize_fn).shuffle(shuffle_buf)
     
-
-
+    
+        
 X, y = next(iter(data.train_dataloader()))
 print(X.shape, X.dtype, y.shape, y.dtype)
 
