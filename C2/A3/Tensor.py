@@ -3,7 +3,6 @@ from PyQt5 import QtWidgets, uic
 from matplotlib.cbook import flatten
 import numpy as np
 import matplotlib.pyplot as plt
-from pyparsing import java_style_comment
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
@@ -13,7 +12,7 @@ import seaborn as sns
 
 def main():
 
-    batch_size = 100
+    batch_size = 250
     img_height = 100
     img_width = 100
     train_ds = tf.keras.utils.image_dataset_from_directory(
@@ -31,14 +30,14 @@ def main():
     print(class_names)
     plt.figure(figsize=(100, 100))
     for images, labels in train_ds.take(1):
-        for i in range(100):
-            ax = plt.subplot(10, 10, i + 1)
+        for i in range(50):
+            ax = plt.subplot(5, 10, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
             plt.title(class_names[labels[i]])
             plt.axis("off")
     plt.show()
-    train_ds = train_ds.cache().prefetch(buffer_size=10)
-    val_ds = val_ds.cache().prefetch(buffer_size=10)
+    train_ds = train_ds.cache().prefetch(buffer_size=20)
+    val_ds = val_ds.cache().prefetch(buffer_size=20)
     num_clases = len(class_names)
     data_augmentation = tf.keras.Sequential([
         tf.keras.layers.RandomFlip("horizontal",
@@ -65,15 +64,15 @@ def main():
         layers.MaxPooling2D(3,3),
         layers.Dropout(0.2),
         layers.Flatten(),
-        layers.Dense(100, activation='relu'),
-        layers.Dense(100, activation='relu'),
+        layers.Dense(50, activation='relu'),
+        layers.Dense(50, activation='relu'),
         layers.Dense(num_clases)
     ])
     modelo.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
     modelo.summary()
-    epochs = 50
+    epochs = 500
     history = modelo.fit(
         train_ds,
         validation_data=val_ds,
