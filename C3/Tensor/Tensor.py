@@ -10,7 +10,7 @@ from sklearn.model_selection import cross_val_score
 from keras.wrappers.scikit_learn import KerasClassifier
 
 
-batch_size = 250
+batch_size = 300
 img_height = 100
 img_width = 100
 
