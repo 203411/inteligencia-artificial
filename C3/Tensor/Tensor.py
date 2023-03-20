@@ -10,6 +10,7 @@ from sklearn.model_selection import cross_val_score
 from keras.wrappers.scikit_learn import KerasClassifier
 
 
+
 batch_size = 300
 img_height = 100
 img_width = 100
@@ -66,7 +67,7 @@ def funcion_activacion ():
         tf.keras.layers.Flatten(input_shape=(img_height, img_width,3)),
         tf.keras.layers.Dense(100,activation=tf.nn.relu),
         tf.keras.layers.Dense(50,activation=tf.nn.relu),
-        tf.keras.layers.Dense(8,activation=tf.nn.softmax),
+        tf.keras.layers.Dense(8 ,activation=tf.nn.softmax),
     
         ])
         modelo.compile(optimizer='adam',
