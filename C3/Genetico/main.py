@@ -106,7 +106,7 @@ def main(dna):
         if dna.is_valid():
             while bandera:
                 for i in range(50):
-                        poblacionAntesPoda = dna.mutacion(dna.cruzar(dna.seleccion(poblacion), 0.95), 0.2, 0.2)
+                        poblacionAntesPoda = dna.mutacion(dna.cruzar(dna.seleccion(poblacion), 0.95), 0.5, 0.5)
                         poblacionAntesPoda = dna.evaluar_poblacion(poblacionAntesPoda)
                         poblacionAntesPoda = dna.agregar_poblacion(poblacion, poblacionAntesPoda)
                         poblacionOrdenada = dna.ordenar_valores(poblacionAntesPoda)
@@ -116,6 +116,9 @@ def main(dna):
                         poblacion = dna.poda(poblacionAntesPoda, 20)
                         generaciones.append(poblacion)
                         print("Generacion: " + str(i))
+                        print(generaciones[i])
+                        
+                
                 bandera = sin_ceros(generaciones[-1][0])
                 if bandera and contador < 10:
                     contador += 1
@@ -149,6 +152,7 @@ def main(dna):
             print("OK")  
             interfaz.estado.setText("Se encontro una solucion")
             interfaz.estado.setStyleSheet("color: green")
+            
         else:
             interfaz.estado.setText("No se pudo encontrar una solucion")
             interfaz.estado.setStyleSheet("color: yellow")    
@@ -158,7 +162,8 @@ def main(dna):
         interfaz.estado.setStyleSheet("color: red")
         print("El no archivo no fue cargado o no se pudo abrir")
         sys.exit(1)
-        
+
+
         
 arreglo_habilidades = []
 

@@ -67,7 +67,7 @@ def funcion_activacion ():
         tf.keras.layers.Flatten(input_shape=(img_height, img_width,3)),
         tf.keras.layers.Dense(100,activation=tf.nn.relu),
         tf.keras.layers.Dense(50,activation=tf.nn.relu),
-        tf.keras.layers.Dense(13 ,activation=tf.nn.softmax),
+        tf.keras.layers.Dense(20 ,activation=tf.nn.softmax),
     
         ])
         modelo.compile(optimizer='adam',
@@ -117,7 +117,7 @@ def comprobacion(val_ds,class_names,modelo):
                 predictions = modelo.predict(images)
                 score = tf.nn.softmax(predictions[i])
                 print(
-                "Esta imagen probablemente pertenece a {} "
+                "Esta imagen probablemente pertenece a {}"
                 .format(class_names[np.argmax(score)], 100 * np.max(score)))
                 plt.imshow(images[i].numpy().astype("uint8"))
                 plt.show()
@@ -172,5 +172,5 @@ if __name__ == '__main__':
     graficas(epochs_range ,acc,val_acc,loss,val_loss)
     comprobacion(val_ds,class_name,f_activacion)
     test_images,test_labels=matriz_confusion(train_ds,class_name,f_activacion)
-    validacion_cruzada(test_images,test_labels)
+    # validacion_cruzada(test_images,test_labels)
    
