@@ -35,7 +35,7 @@ habilidad_valor = ['N/A',
 ]
 
 
-def generar_tabla(individuo):
+def generar_tabla(individuo,x):
     matriz_habilidades = []
     cant_habilidades_coincidentes = []
     for j in range(len(individuo[2])):
@@ -57,7 +57,10 @@ def generar_tabla(individuo):
     header=dict(values=['Habilidades'] + individuo[2] + ['Cantidad de habilidades coincidentes']),
     cells=dict(values=[arreglo_habilidades] + matriz_habilidades+[cant_habilidades_coincidentes])),
     ], layout=go.Layout(title='Tabla de mejor individuo')) 
-    fig.show()
+    os.makedirs("Imagenes\MejorIndividuo", exist_ok=True) 
+    fig.write_image("Imagenes\MejorIndividuo/"+str(x)+".png", width=1500, height=500)
+    
+    # fig.show()
 
 def guardar_individuo(individuo,i):
     habilidades_nombre = []
@@ -71,7 +74,7 @@ def guardar_individuo(individuo,i):
         header=dict(values=['Nombres de los integrantes ','Salario Individual','Rol que desempeña', 'Salario total al mes: '+str(individuo[3])]),
         cells=dict(values=[individuo[2],individuo[4],habilidades_nombre]))
         ])
-    fig.write_image("salida\Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=500)
+    fig.write_image("Imagenes\Tabla/Tabla"+str(i)+".png", width=1500, height=500)
     
 def sin_ceros(individuo):
     matriz_habilidades = []
@@ -102,6 +105,7 @@ def main(dna):
         poblacion = dna.evaluar_poblacion(dna.generar_poblacion(csv))
         bandera = True
         contador = 0
+        mejores_generacion = []
         # interfaz.close()
         if dna.is_valid():
             while bandera:
@@ -115,6 +119,8 @@ def main(dna):
                         peor_individuo.append(poblacionOrdenada[-1])
                         poblacion = dna.poda(poblacionAntesPoda, 20)
                         generaciones.append(poblacion)
+                        ordenados = sorted(poblacion, key=lambda x: x[3])
+                        mejores_generacion.append(ordenados[0])
                         print("Generacion: " + str(i))
                         print(generaciones[i])
                         
@@ -127,26 +133,31 @@ def main(dna):
                     print("No se pudo encontrar una solucion en el tiempo esperado")
                     break
             try:
-                rmtree("salida\Imagenes")
+                rmtree("Imagenes")
             except:
                 pass 
-            os.makedirs("salida\Imagenes\Tabla", exist_ok=True)
+            os.makedirs("Imagenes\Tabla", exist_ok=True)
             for i in range(5):
                 guardar_individuo(generaciones[-1][i],i)
                 guardar_individuo(generaciones[-1].pop(),5+i)
-            generar_tabla(generaciones[-1][0])
+                
+            generar_tabla(generaciones[-1][0],"Mejor individuo")
+            j = 0
+            for i in range(3,18,3):
+                generar_tabla(mejores_generacion[i], "Opcion "+str(j+1))
+                j += 1
             plt.plot(mejor_individuo, label="Mejor individuo", color="red", linestyle="-",)
             plt.plot(promedio, label="Promedio", color="yellow", linestyle="-",)
             plt.plot(peor_individuo, label="Peor individuo", color="green", linestyle="-")
             plt.legend()
-            os.makedirs("salida\Imagenes\GraficaHistorial/", exist_ok=True)
-            plt.savefig("salida\Imagenes\GraficaHistorial/GraficaHistorial.png")
-            os.makedirs("salida\Imagenes\Video", exist_ok=True)
+            os.makedirs("Imagenes\GraficaHistorial/", exist_ok=True)
+            plt.savefig("Imagenes\GraficaHistorial/GraficaHistorial.png")
+            os.makedirs("Imagenes\Video", exist_ok=True)
             img = []   
             for i in range(10):
-                img.append(cv2.imread("salida\Imagenes\Tabla/Tabla"+str(i)+".png"))
+                img.append(cv2.imread("Imagenes\Tabla/Tabla"+str(i)+".png"))
             alto, ancho = img[0].shape[:2]
-            video = cv2.VideoWriter('salida\Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
+            video = cv2.VideoWriter('Imagenes\Video\mivideo.avi', cv2.VideoWriter_fourcc(*'DIVX'),3, (alto, ancho))
             for i in range(len(img)):
                 video.write(img[i]) 
             print("OK")  
@@ -157,7 +168,7 @@ def main(dna):
             interfaz.estado.setText("No se pudo encontrar una solucion")
             interfaz.estado.setStyleSheet("color: yellow")    
     except Exception as e:
-        print(e)
+        # print(e)
         interfaz.estado.setText("El no archivo no fue cargado o no se pudo abrir")
         interfaz.estado.setStyleSheet("color: red")
         print("El no archivo no fue cargado o no se pudo abrir")

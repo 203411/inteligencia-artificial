@@ -10,7 +10,7 @@
 <body>
     <main>
         <div class="px-4 py-2 my-2 text-center border-bottom">
-          <h1 class="display-5 fw-bold">Clasificacion de rostros con o sin lentes</h1>
+          <h1 class="display-5 fw-bold">Identificador de rostros</h1>
           <div class="col-lg-6 mx-auto">
             <p class="lead mb-0">Clasificaci&oacute;n de im&aacute;genes (Personas con o sin lentes) usando la c&aacute;mara web utilizando Tensorflow.js</p>
           </div>
@@ -22,7 +22,7 @@
           <div class="row">
             <div class="col-12 col-md-4 offset-md-4 text-center">
               <video id="video" playsinline autoplay style="width: 1px;"></video>
-              <button class="btn btn-primary mb-2" id="cambiar-camara" >Cambiar camara</button>
+              <button class="btn btn-primary mb-2" id="cambiar-camara" onclick="cambiarCamara()">Cambiar camara</button>
               <canvas id="canvas" width="400" height="400" style="max-width: 100%;"></canvas>
               <canvas id="otrocanvas" width="150" height="150" style="display: none"></canvas>
               <div id="resultado"></div>            
@@ -115,7 +115,7 @@
     
         function procesarCamara() {
           ctx.drawImage(video, 0, 0, tamano, tamano, 0, 0, tamano, tamano);
-          setTimeout(procesarCamara, 20);
+          setTimeout(procesarCamara, 50);
         }
     
         function predecir() {
@@ -139,18 +139,19 @@
                   }
               }
 
-              arr = [arr]; //Meter el arreglo en otro arreglo por que si no tio tensorflow se enoja >:(
+              arr = [arr]; //Meter el arreglo en otro arreglo 
               //Nah basicamente Debe estar en un arreglo nuevo en el indice 0, por ser un tensor4d en forma 1, 100, 100, 1
               var tensor4 = tf.tensor4d(arr);
               var resultados = modelo.predict(tensor4).dataSync();
               var mayorIndice = resultados.indexOf(Math.max.apply(null, resultados));
-
-              var clases = ["Alison Jimenez","Emilio Mendez","Emily Cruz","Enrique Verrrrdi","Jaime Grimaldo","Jorge Camacho", "Joseline Kato","Lauro Saraoz","Liliana Sibaja","Marcos Shilon","Marisol Solis", "Nancy Jimenez","Norma Serrano","Omar Franco","Roodrigo Morales","Roxana Flores","Sofia Calvo","Stevan Padilla","Valeria Plata","Victor Coutino"];
+              console.log("mayorIndice", mayorIndice);
+              //var clases = ["Alison Jimenez","Emilio Mendez","Emily Cruz","Enrique Verdi","Jaime Grimaldo","Jorge Camacho", "Joseline Kato","Lauro Saraoz","Liliana Sibaja","Marcos Shilon","Marisol Solis", "Nancy Jimenez","Norma Serrano","Omar Franco","Roodrigo Morales","Roxana Flores","Sofia Calvo","Stevan Padilla","Valeria Plata","Victor Coutino"];
+              var clases = ["Emilio_Mendez","Jorge_Camacho","Liliana_Sibaja","Marcos_Shilon","Marisol_Solis", "Omar_Franco","Rodrigo_Morales","Steven_Padilla","Victor_Coutino"]
               console.log("Prediccion", clases[mayorIndice]);
               document.getElementById("resultado").innerHTML = clases[mayorIndice];
           }
     
-          setTimeout(predecir, 150);
+          setTimeout(predecir, 2000);
         }
     
         /**

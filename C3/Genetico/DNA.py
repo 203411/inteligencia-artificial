@@ -181,6 +181,7 @@ class DNA():
         for individuo in poblacion:
             while(poblacion.count(individuo) > 1):
                 poblacion.remove(individuo)
+        
         return poblacion  
 
     def ordenar_valores(self, valores):

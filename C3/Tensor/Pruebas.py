@@ -67,7 +67,7 @@ def funcion_activacion ():
         tf.keras.layers.Flatten(input_shape=(img_height, img_width,3)),
         tf.keras.layers.Dense(100,activation=tf.nn.relu),
         tf.keras.layers.Dense(50,activation=tf.nn.relu),
-        tf.keras.layers.Dense(20 ,activation=tf.nn.softmax),
+        tf.keras.layers.Dense(7 ,activation=tf.nn.softmax),
     
         ])
         modelo.compile(optimizer='adam',
@@ -90,9 +90,9 @@ def entrenamiento(modelo):
 
         epochs_range = range(epochs)
         modelo.save('modelo.h5')
-        modelo_json = modelo.to_json()
-        with open('modelo.json', 'w') as archivo_json:
-            archivo_json.write(modelo_json)
+        # modelo_json = modelo.to_json()
+        # with open('modelo.json', 'w') as archivo_json:
+        #     archivo_json.write(modelo_json)
         return epochs_range ,acc,val_acc,loss,val_loss
 
 def graficas(epochs_range,acc,val_acc,loss,val_loss):
